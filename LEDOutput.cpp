@@ -146,6 +146,9 @@ void LEDOutput::setDimStep(int inDimStep){
 
 void LEDOutput::setDimStepUp(){
 	/// Increase the dim level by one, if not already maximum
+	// End an in-progress fade, if needed
+	setDimFadeStop();
+	// Increment the dim level
 	if(__state_dim_level < NUM_DIM_STEPS-1){
 		__state_dim_level++;
 	} 
@@ -158,6 +161,9 @@ void LEDOutput::setDimStepUp(){
 
 void LEDOutput::setDimStepDown(){
 	/// Decrease the dim level by one, if not already zero
+	// End an in-progress fade, if needed
+	setDimFadeStop();
+	// Decrement the dim level
 	if (__state_dim_level > 0){
 		__state_dim_level--;
 	} 

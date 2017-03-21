@@ -25,7 +25,7 @@
 #include <math.h>
 
 #define MAX_PWM 255		 // The number of PWM levels, usually 255
-#define NUM_DIM_STEPS 12 // The number of steps on the dimming scale
+#define NUM_DIM_STEPS 7 // The number of steps on the dimming scale
 
 
 class LEDOutput {
@@ -87,7 +87,7 @@ class LEDOutput {
 		int __state_pwm_last = 0;
 		int __sane_pwm;
 		
-		byte __state_fade_pwm_target = 0;
+		int __state_fade_pwm_target = 0;
 		unsigned long __state_fade_end_millis = 0UL;
 		unsigned int __state_fade_duration_millis = 0;
 		unsigned int __state_fade_default_millis = 0;
