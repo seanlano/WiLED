@@ -11,7 +11,7 @@ The code is written for an ATmega328 based Arduino, running at a base clock of 8
 
 ## Contributors and thanks 
 
-The Rotary library for Arduino, by Ben Buxton, has been used and the files `Rotary.h` and `Rotary.cpp` are included in the project. [See here for the original source](https://github.com/brianlow/Rotary). It is GPLv3 licensed. 
+The Rotary library for Arduino, by Ben Buxton, has been used and the files `Rotary.h` and `Rotary.cpp` are included in this project. [See here for the original source](https://github.com/brianlow/Rotary). It is GPLv3 licensed. 
 
 ## License
 
