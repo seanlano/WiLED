@@ -78,20 +78,19 @@ class LEDOutput {
 		bool getPowerOn();
 		
 	private:
-		byte led_pin;
+		unsigned short led_pin;
 		int pwm_dim_levels[NUM_DIM_STEPS];
-		byte __state_dim_level = 0;
-		byte __state_dim_level_goal = 0;
+		unsigned short __state_dim_level = 0;
+		unsigned short __state_dim_level_goal = 0;
 		bool __state_power_on = false;
-		byte __state_percent = 0;
+		unsigned short __state_percent = 0;
 		int __state_pwm = 0;
 		int __state_pwm_last = 0;
 		int __sane_pwm;
 		
 		int __state_fade_pwm_target = 0;
 		unsigned long __state_fade_end_millis = 0UL;
-		unsigned int __state_fade_duration_millis = 0;
-		unsigned int __state_fade_default_millis = 0;
+		unsigned short __state_fade_default_millis = 0;
 		float __state_fade_pwmconst = 0.00;
 		bool __state_fade_inprogress = false;
 		

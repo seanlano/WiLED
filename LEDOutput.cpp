@@ -257,7 +257,11 @@ void LEDOutput::setDimFadeStop(){
 
 void LEDOutput::setDimDefaultFade(int inTimeMillis){
 	/// Set the default fade duration
-	__state_fade_default_millis = abs(inTimeMillis);
+	if (abs(inTimeMillis) > 255){
+		__state_fade_default_millis = 255;
+	} else {
+		__state_fade_default_millis = abs(inTimeMillis);
+	}
 }
 
 int LEDOutput::getDimPWM(){
