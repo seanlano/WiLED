@@ -137,7 +137,6 @@ void LEDOutput::setDimStep(int inDimStep){
 	else {
 		__state_dim_level_goal = inDimStep;
 	}
-	__state_dim_level_goal = __state_dim_level;
 	// Set the PWM to the value corresponding to this dim level
 	setDimPWM(pwm_dim_levels[__state_dim_level_goal]);
 	// Note that setDimPWM() will set __state_dim_level by
