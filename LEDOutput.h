@@ -81,6 +81,7 @@ class LEDOutput {
 		byte led_pin;
 		int pwm_dim_levels[NUM_DIM_STEPS];
 		byte __state_dim_level = 0;
+		byte __state_dim_level_goal = 0;
 		bool __state_power_on = false;
 		byte __state_percent = 0;
 		int __state_pwm = 0;

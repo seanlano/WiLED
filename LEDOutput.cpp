@@ -129,49 +129,45 @@ void LEDOutput::setDimStep(int inDimStep){
 	/// Set the desired output level, in terms of the dimming step
 	// Check the input is sane, i.e. is between 0 and the maximum step
 	if (inDimStep > NUM_DIM_STEPS-1){
-		__state_dim_level = NUM_DIM_STEPS-1;
+		__state_dim_level_goal = NUM_DIM_STEPS-1;
 	} 
 	else if (inDimStep < 0){
-		__state_dim_level = 0;
+		__state_dim_level_goal = 0;
 	}
 	else {
-		__state_dim_level = inDimStep;
+		__state_dim_level_goal = inDimStep;
 	}
+	__state_dim_level_goal = __state_dim_level;
 	// Set the PWM to the value corresponding to this dim level
-	setDimPWM(pwm_dim_levels[__state_dim_level]);
-	// Note that setDimPWM() will set __state_dim_level again by
-	// re-calculating the closest dim level - even though we just 
-	// specified it, but this doesn't really matter
+	setDimPWM(pwm_dim_levels[__state_dim_level_goal]);
+	// Note that setDimPWM() will set __state_dim_level by
+	// calculating the closest dim level during the fade event
 }
 
 void LEDOutput::setDimStepUp(){
 	/// Increase the dim level by one, if not already maximum
-	// End an in-progress fade, if needed
-	setDimFadeStop();
-	// Increment the dim level
-	if(__state_dim_level < NUM_DIM_STEPS-1){
-		__state_dim_level++;
+	// Increment the dim level goal 
+	if(__state_dim_level_goal < NUM_DIM_STEPS-1){
+		__state_dim_level_goal++;
 	} 
 	else {
-		__state_dim_level = NUM_DIM_STEPS-1;
+		__state_dim_level_goal = NUM_DIM_STEPS-1;
 	}
 	// Set the PWM to the value corresponding to this dim level
-	setDimPWM(pwm_dim_levels[__state_dim_level]);
+	setDimPWM(pwm_dim_levels[__state_dim_level_goal]);
 }
 
 void LEDOutput::setDimStepDown(){
 	/// Decrease the dim level by one, if not already zero
-	// End an in-progress fade, if needed
-	setDimFadeStop();
-	// Decrement the dim level
-	if (__state_dim_level > 0){
-		__state_dim_level--;
+	// Decrement the dim level goal
+	if (__state_dim_level_goal > 0){
+		__state_dim_level_goal--;
 	} 
 	else {
-		__state_dim_level = 0;
+		__state_dim_level_goal = 0;
 	}
 	// Set the PWM to the value corresponding to this dim level
-	setDimPWM(pwm_dim_levels[__state_dim_level]);
+	setDimPWM(pwm_dim_levels[__state_dim_level_goal]);
 }
 
 void LEDOutput::setDimPercent(int inDimPercent){
