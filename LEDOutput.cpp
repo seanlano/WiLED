@@ -145,6 +145,7 @@ void LEDOutput::setDimStep(uint8_t inDimStep){
 
 void LEDOutput::setDimStepUp(){
 	/// Increase the dim level by one, if not already maximum
+	uint32_t millis_now = millis();
 	switch (__state_dim_level_goal){
 		case NUM_DIM_STEPS-1: 
 		{
@@ -154,14 +155,14 @@ void LEDOutput::setDimStepUp(){
 		case NUM_DIM_STEPS-2:
 		{
 			// Test if lockout should apply 
-			if (millis() > __state_lockout_end_millis){
+			if (millis_now > __state_lockout_end_millis){
 				// Lockout is over, increment dim step 
 				__state_dim_level_goal++; 
 				// Set the PWM to the value corresponding to this dim level
 				setDimPWM(pwm_dim_levels[__state_dim_level_goal]);
 			} else {
 				// Lockout still applies, reset counter
-				__state_lockout_end_millis = millis() + __state_step_lockout_millis; 
+				__state_lockout_end_millis = millis_now + __state_step_lockout_millis; 
 			}
 			break;
 		}
@@ -170,7 +171,7 @@ void LEDOutput::setDimStepUp(){
 			// Increase dim step 
 			__state_dim_level_goal++;
 			// Store the end time for dim step lockout
-			__state_lockout_end_millis = millis() + __state_step_lockout_millis; 
+			__state_lockout_end_millis = millis_now + __state_step_lockout_millis; 
 			// Set the PWM to the value corresponding to this dim level
 			setDimPWM(pwm_dim_levels[__state_dim_level_goal]);
 			break;
@@ -180,6 +181,7 @@ void LEDOutput::setDimStepUp(){
 
 void LEDOutput::setDimStepDown(){
 	/// Decrease the dim level by one, if not already zero
+	uint32_t millis_now = millis();
 	switch (__state_dim_level_goal){
 		case 0: 
 		{
@@ -189,14 +191,14 @@ void LEDOutput::setDimStepDown(){
 		case 1:
 		{
 			// Test if lockout should apply 
-			if (millis() > __state_lockout_end_millis){
+			if (millis_now > __state_lockout_end_millis){
 				// Lockout is over, decrement dim step 
 				__state_dim_level_goal--; 
 				// Set the PWM to the value corresponding to this dim level
 				setDimPWM(pwm_dim_levels[__state_dim_level_goal]);
 			} else {
 				// Lockout still applies, reset counter
-				__state_lockout_end_millis = millis() + __state_step_lockout_millis; 
+				__state_lockout_end_millis = millis_now + __state_step_lockout_millis; 
 			}
 			break;
 		}
@@ -205,7 +207,7 @@ void LEDOutput::setDimStepDown(){
 			// Decrease dim step 
 			__state_dim_level_goal--;
 			// Store the end time for dim step lockout
-			__state_lockout_end_millis = millis() + __state_step_lockout_millis; 
+			__state_lockout_end_millis = millis_now + __state_step_lockout_millis; 
 			// Set the PWM to the value corresponding to this dim level
 			setDimPWM(pwm_dim_levels[__state_dim_level_goal]);
 			break;
@@ -215,8 +217,8 @@ void LEDOutput::setDimStepDown(){
 
 void LEDOutput::setDimPercent(uint8_t inDimPercent){
 	/// Set the desired output level; in terms of a percentage
-	byte percent;
-	int pwm;
+	uint8_t percent; 
+	uint16_t pwm; 
 	// Check input is sane, i.e. is a valid percentage 0-100
 	if (inDimPercent > 100){
 		percent = 100;
@@ -229,8 +231,8 @@ void LEDOutput::setDimPercent(uint8_t inDimPercent){
 	}
 	// Scale the percentage to the range of the PWM values
 	pwm = (percent*MAX_PWM)/100;
-	// Set dim level, to the nearest step
-	setDimPWM(pwm);
+	// Set dim level
+	setDimPWMExact(pwm);
 }
 
 void LEDOutput::setDimPWM(uint16_t inPWM){
