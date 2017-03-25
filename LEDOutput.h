@@ -75,25 +75,25 @@ class LEDOutput {
 		
 		// A bunch of get methods to access the internal state variables
 		int getDimPWM();
-		int getDimPercent();
-		int getDimStep();
-		unsigned int getDimDefaultFade();
+		uint8_t getDimPercent();
+		uint8_t getDimStep();
+		uint8_t getDimDefaultFade();
 		bool getPowerOn();
 		
 	private:
-		unsigned short led_pin;
+		uint8_t led_pin;
 		int pwm_dim_levels[NUM_DIM_STEPS];
-		unsigned short __state_dim_level = 0;
-		unsigned short __state_dim_level_goal = 0;
+		uint8_t __state_dim_level = 0;
+		uint8_t __state_dim_level_goal = 0;
 		bool __state_power_on = false;
-		unsigned short __state_percent = 0;
+		uint8_t __state_percent = 0;
 		int __state_pwm = 0;
 		int __state_pwm_last = 0;
 		int __sane_pwm;
 		
 		int __state_fade_pwm_target = 0;
 		unsigned long __state_fade_end_millis = 0UL;
-		unsigned short __state_fade_default_millis = 0;
+		uint8_t __state_fade_default_millis = 0;
 		uint8_t __state_step_lockout_millis = 0;
 		unsigned long __state_lockout_end_millis = 0UL;
 		float __state_fade_pwmconst = 0.00;

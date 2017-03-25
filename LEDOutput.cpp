@@ -325,7 +325,7 @@ int LEDOutput::getDimPWM(){
 	}
 }
 
-int LEDOutput::getDimPercent(){
+uint8_t LEDOutput::getDimPercent(){
 	if (__state_power_on){
 		return __state_percent;
 	} 
@@ -334,7 +334,7 @@ int LEDOutput::getDimPercent(){
 	}
 }
 
-int LEDOutput::getDimStep(){
+uint8_t LEDOutput::getDimStep(){
 	if (__state_power_on){
 		return __state_dim_level;
 	} 
@@ -343,7 +343,7 @@ int LEDOutput::getDimStep(){
 	}
 }
 
-unsigned int LEDOutput::getDimDefaultFade(){
+uint8_t LEDOutput::getDimDefaultFade(){
 	return __state_fade_default_millis;
 }
 
