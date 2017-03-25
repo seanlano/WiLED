@@ -31,7 +31,7 @@
 class LEDOutput {
 	public:
 		// Create an LED output controller for the given pin
-		LEDOutput(int inLEDPin);
+		LEDOutput(uint8_t inLEDPin);
 		
 		// Run in each cycle of the main loop, to update the LED output
 		void process();
@@ -42,32 +42,32 @@ class LEDOutput {
 		void setPowerOff(); // Directly turn off
 		
 		// Set the desired output level, in terms of the dimming step
-		void setDimStep(int inDimStep);
+		void setDimStep(uint8_t inDimStep);
 		
 		// Step up or down to the next brightness step
 		void setDimStepUp();
 		void setDimStepDown();
 		
 		// Set the desired output level; in terms of a percentage (rounds up to nearest step)
-		void setDimPercent(int inDimPercent);
+		void setDimPercent(uint8_t inDimPercent);
 		
 		// Set the desired output level; in terms of the PWM level (i.e. 0-255) (rounds up to nearest step)
-		void setDimPWM(int inPWM);
+		void setDimPWM(uint16_t inPWM);
 		
 		// Set the desired output level; in terms of the PWM level (i.e. 0-255) (no rounding)
-		void setDimPWMExact(int inPWM);
+		void setDimPWMExact(uint16_t inPWM);
 		
 		// Begin fading PWM level over specified duration
-		void setDimFadeStart(int inTargetPWM, int inTimeMillis);
+		void setDimFadeStart(uint16_t inTargetPWM, uint16_t inTimeMillis);
 		
 		// Stop fading, and jump straight to target PWM state
 		void setDimFadeStop(); 
 		
 		// Set the default fade duration, used when changing PWM output
-		void setDimDefaultFade(int inTimeMillis);
+		void setDimDefaultFade(uint8_t inTimeMillis);
 		
 		// Set the step up/down power off lockout time
-		void setDimStepLockout(int inTimeMillis);
+		void setDimStepLockout(uint8_t inTimeMillis);
 		
 		// Set status update callback. Will be called when LED status changes. 
 		void setStatusCallback(void (*cb)(void));
@@ -101,8 +101,8 @@ class LEDOutput {
 		
 		bool __status_update_needed = false;
 		
-		uint8_t __find_closest_step(int inPWM);
-		uint16_t __sane_in_pwm(int inPWM);
+		uint8_t __find_closest_step(uint16_t inPWM);
+		uint16_t __sane_in_pwm(uint16_t inPWM);
 		
 		void (*__status_callback)(void);
 		bool __status_callback_exists = false;

@@ -21,7 +21,7 @@
 #include "LEDOutput.h"
 
 
-LEDOutput::LEDOutput(int inLEDPin){
+LEDOutput::LEDOutput(uint8_t inLEDPin){
 	/// Initialise a dimmable LED
 	led_pin = inLEDPin;
 	analogWrite(led_pin, 0);
@@ -125,7 +125,7 @@ void LEDOutput::setPowerOff(){
 	__state_power_on = false;
 }
 
-void LEDOutput::setDimStep(int inDimStep){
+void LEDOutput::setDimStep(uint8_t inDimStep){
 	/// Set the desired output level, in terms of the dimming step
 	// Check the input is sane, i.e. is between 0 and the maximum step
 	if (inDimStep > NUM_DIM_STEPS-1){
@@ -213,7 +213,7 @@ void LEDOutput::setDimStepDown(){
 	}
 }
 
-void LEDOutput::setDimPercent(int inDimPercent){
+void LEDOutput::setDimPercent(uint8_t inDimPercent){
 	/// Set the desired output level; in terms of a percentage
 	byte percent;
 	int pwm;
@@ -233,7 +233,7 @@ void LEDOutput::setDimPercent(int inDimPercent){
 	setDimPWM(pwm);
 }
 
-void LEDOutput::setDimPWM(int inPWM){
+void LEDOutput::setDimPWM(uint16_t inPWM){
 	/// Set the desired output level; in terms of the PWM level (i.e. 0-255)
 	/// This will round up to the nearest step
 	__sane_pwm = __sane_in_pwm(inPWM);
@@ -248,7 +248,7 @@ void LEDOutput::setDimPWM(int inPWM){
 	}
 }
 
-void LEDOutput::setDimPWMExact(int inPWM){
+void LEDOutput::setDimPWMExact(uint16_t inPWM){
 	/// Set the desired output level; in terms of the PWM level (i.e. 0-255)
 	/// This function should be the only one used to change the output, 
 	/// it will also update the percent and step state values
@@ -272,7 +272,7 @@ void LEDOutput::setDimPWMExact(int inPWM){
 	#endif
 }
 
-void LEDOutput::setDimFadeStart(int inTargetPWM, int inTimeMillis){
+void LEDOutput::setDimFadeStart(uint16_t inTargetPWM, uint16_t inTimeMillis){
 	/// Start fading down to the given target PWM level, over a timespan
 	/// of the given number of milliseconds
 	// Make sure input time is not negative
@@ -298,22 +298,14 @@ void LEDOutput::setDimFadeStop(){
 	}
 }
 
-void LEDOutput::setDimDefaultFade(int inTimeMillis){
+void LEDOutput::setDimDefaultFade(uint8_t inTimeMillis){
 	/// Set the default fade duration
-	if (abs(inTimeMillis) > 255){
-		__state_fade_default_millis = 255;
-	} else {
-		__state_fade_default_millis = abs(inTimeMillis);
-	}
+	__state_fade_default_millis = inTimeMillis;
 }
 
-void LEDOutput::setDimStepLockout(int inTimeMillis){
+void LEDOutput::setDimStepLockout(uint8_t inTimeMillis){
 	/// Set the dim step lockout time 
-	if (abs(inTimeMillis) > 255){
-		__state_step_lockout_millis = 255;
-	} else {
-		__state_step_lockout_millis = abs(inTimeMillis);
-	}
+	__state_step_lockout_millis = inTimeMillis;
 }
 
 uint16_t LEDOutput::getDimPWM(){
@@ -359,7 +351,7 @@ void LEDOutput::setStatusCallback(void (*cb)(void)){
 
 
 // Private methods
-uint8_t LEDOutput::__find_closest_step(int inPWM){
+uint8_t LEDOutput::__find_closest_step(uint16_t inPWM){
 	/// Find the nearest PWM step to the given input
 	int closest_step = 0;
 	__sane_pwm = __sane_in_pwm(inPWM);
@@ -372,7 +364,7 @@ uint8_t LEDOutput::__find_closest_step(int inPWM){
 	return closest_step;
 }
 
-uint16_t LEDOutput::__sane_in_pwm(int inPWM){
+uint16_t LEDOutput::__sane_in_pwm(uint16_t inPWM){
 	/// Checking sanity of input PWM value is done often, so it gets a function
 	if (inPWM > MAX_PWM){
 		__sane_pwm = MAX_PWM;
