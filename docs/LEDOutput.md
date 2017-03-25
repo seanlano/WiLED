@@ -5,6 +5,7 @@ The LEDOutput class provides various useful ways to manage an attached LED drive
 ## Dimming Steps 
 
 LEDOutput provides a customisable number of dimming "steps", by default it has six brightness levels which follow an exponential function. 
+
 This provides a more even perception of brightness change between each step than a linear function, for example the eye will perceive a much bigger difference between 1/255 and 10/255 than it would between 245/255 and 255/255. Hence the difference between the lower steps in terms of the PWM output is much less than the difference between the higher steps. 
 
 ## Features
@@ -16,6 +17,7 @@ This provides a more even perception of brightness change between each step than
 ## Usage 
 
 The LEDOutput class must be declared with an Arduino output pin number. The pin must be PWM compatible. 
+
 For example, declare the class like this:
 ```C++
 // Initialise a dimmable LED on pin 11
@@ -44,8 +46,9 @@ Set the dimming level to the specified step (i.e. 1-6).
 
 ### `setDimStepUp()` and `setDimStepDown()`
 
-Change to the next higher or lower dimming step, respectively. 
-If `setDimStepLockout` has been called with a non-zero value, `setDimStepUp` will enforce a lockout time before allowing changing to the highest dimming step; and conversely `setDimStepUp` will enforce a lockout time before changing to zero output. This means that a fast turn of the rotary encoder won't turn the LED all the way on or off in one go, there needs to be a short pause. 
+Change to the next higher or lower dimming step, respectively.
+ 
+If `setDimStepLockout` has been called with a non-zero value, `setDimStepUp` will enforce a lockout time before allowing changing to the highest dimming step; and conversely `setDimStepDown` will enforce a lockout time before changing to zero output. This means that a fast turn of the rotary encoder won't turn the LED all the way on or off in one go, there needs to be a short pause. 
 
 ### `setDimPercent(inDimPercent)`
 
@@ -113,7 +116,7 @@ Returns the current dimming step.
 
 ### `getDimDefaultFade();
 
-Retruns the current default dimming fade time. 
+Returns the current default dimming fade time. 
 
 ### `getPowerOn();
 
