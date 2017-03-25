@@ -49,7 +49,7 @@ void LEDOutput::process(){
 	/// Update the LED output
 	// First, process any ongoing fade event
 	if (__state_fade_inprogress){
-		unsigned long millis_now = millis();
+		uint32_t millis_now = millis();
 		// If we have passed the end time, set the output to the target value
 		if (millis_now > __state_fade_end_millis){
 			setDimPWMExact(__state_fade_pwm_target);
@@ -316,7 +316,7 @@ void LEDOutput::setDimStepLockout(int inTimeMillis){
 	}
 }
 
-int LEDOutput::getDimPWM(){
+uint16_t LEDOutput::getDimPWM(){
 	if (__state_power_on){
 		return __state_pwm;
 	} 
@@ -359,7 +359,7 @@ void LEDOutput::setStatusCallback(void (*cb)(void)){
 
 
 // Private methods
-int LEDOutput::__find_closest_step(int inPWM){
+uint8_t LEDOutput::__find_closest_step(int inPWM){
 	/// Find the nearest PWM step to the given input
 	int closest_step = 0;
 	__sane_pwm = __sane_in_pwm(inPWM);
@@ -372,7 +372,7 @@ int LEDOutput::__find_closest_step(int inPWM){
 	return closest_step;
 }
 
-int LEDOutput::__sane_in_pwm(int inPWM){
+uint16_t LEDOutput::__sane_in_pwm(int inPWM){
 	/// Checking sanity of input PWM value is done often, so it gets a function
 	if (inPWM > MAX_PWM){
 		__sane_pwm = MAX_PWM;

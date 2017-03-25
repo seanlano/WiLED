@@ -74,7 +74,7 @@ class LEDOutput {
 		
 		
 		// A bunch of get methods to access the internal state variables
-		int getDimPWM();
+		uint16_t getDimPWM();
 		uint8_t getDimPercent();
 		uint8_t getDimStep();
 		uint8_t getDimDefaultFade();
@@ -82,27 +82,27 @@ class LEDOutput {
 		
 	private:
 		uint8_t led_pin;
-		int pwm_dim_levels[NUM_DIM_STEPS];
+		uint16_t pwm_dim_levels[NUM_DIM_STEPS];
 		uint8_t __state_dim_level = 0;
 		uint8_t __state_dim_level_goal = 0;
 		bool __state_power_on = false;
 		uint8_t __state_percent = 0;
-		int __state_pwm = 0;
-		int __state_pwm_last = 0;
-		int __sane_pwm;
+		int16_t __state_pwm = 0;
+		int16_t __state_pwm_last = 0;
+		int16_t __sane_pwm;
 		
-		int __state_fade_pwm_target = 0;
-		unsigned long __state_fade_end_millis = 0UL;
+		int16_t __state_fade_pwm_target = 0;
+		uint32_t __state_fade_end_millis = 0UL;
 		uint8_t __state_fade_default_millis = 0;
 		uint8_t __state_step_lockout_millis = 0;
-		unsigned long __state_lockout_end_millis = 0UL;
+		uint32_t __state_lockout_end_millis = 0UL;
 		float __state_fade_pwmconst = 0.00;
 		bool __state_fade_inprogress = false;
 		
 		bool __status_update_needed = false;
 		
-		int __find_closest_step(int inPWM);
-		int __sane_in_pwm(int inPWM);
+		uint8_t __find_closest_step(int inPWM);
+		uint16_t __sane_in_pwm(int inPWM);
 		
 		void (*__status_callback)(void);
 		bool __status_callback_exists = false;
