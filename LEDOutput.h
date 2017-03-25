@@ -31,7 +31,7 @@
 class LEDOutput {
 	public:
 		// Create an LED output controller for the given pin
-		LEDOutput(int inLEDPin);
+		LEDOutput(uint8_t inLEDPin);
 		
 		// Run in each cycle of the main loop, to update the LED output
 		void process();
@@ -42,62 +42,67 @@ class LEDOutput {
 		void setPowerOff(); // Directly turn off
 		
 		// Set the desired output level, in terms of the dimming step
-		void setDimStep(int inDimStep);
+		void setDimStep(uint8_t inDimStep);
 		
 		// Step up or down to the next brightness step
 		void setDimStepUp();
 		void setDimStepDown();
 		
 		// Set the desired output level; in terms of a percentage (rounds up to nearest step)
-		void setDimPercent(int inDimPercent);
+		void setDimPercent(uint8_t inDimPercent);
 		
 		// Set the desired output level; in terms of the PWM level (i.e. 0-255) (rounds up to nearest step)
-		void setDimPWM(int inPWM);
+		void setDimPWM(uint16_t inPWM);
 		
 		// Set the desired output level; in terms of the PWM level (i.e. 0-255) (no rounding)
-		void setDimPWMExact(int inPWM);
+		void setDimPWMExact(uint16_t inPWM);
 		
 		// Begin fading PWM level over specified duration
-		void setDimFadeStart(int inTargetPWM, int inTimeMillis);
+		void setDimFadeStart(uint16_t inTargetPWM, uint16_t inTimeMillis);
 		
 		// Stop fading, and jump straight to target PWM state
 		void setDimFadeStop(); 
 		
 		// Set the default fade duration, used when changing PWM output
-		void setDimDefaultFade(int inTimeMillis);
+		void setDimDefaultFade(uint8_t inTimeMillis);
+		
+		// Set the step up/down power off lockout time
+		void setDimStepLockout(uint8_t inTimeMillis);
 		
 		// Set status update callback. Will be called when LED status changes. 
 		void setStatusCallback(void (*cb)(void));
 		
 		
 		// A bunch of get methods to access the internal state variables
-		int getDimPWM();
-		int getDimPercent();
-		int getDimStep();
-		unsigned int getDimDefaultFade();
+		uint16_t getDimPWM();
+		uint8_t getDimPercent();
+		uint8_t getDimStep();
+		uint8_t getDimDefaultFade();
 		bool getPowerOn();
 		
 	private:
-		unsigned short led_pin;
-		int pwm_dim_levels[NUM_DIM_STEPS];
-		unsigned short __state_dim_level = 0;
-		unsigned short __state_dim_level_goal = 0;
+		uint8_t led_pin;
+		uint16_t pwm_dim_levels[NUM_DIM_STEPS];
+		uint8_t __state_dim_level = 0;
+		uint8_t __state_dim_level_goal = 0;
 		bool __state_power_on = false;
-		unsigned short __state_percent = 0;
-		int __state_pwm = 0;
-		int __state_pwm_last = 0;
-		int __sane_pwm;
+		uint8_t __state_percent = 0;
+		int16_t __state_pwm = 0;
+		int16_t __state_pwm_last = 0;
+		int16_t __sane_pwm;
 		
-		int __state_fade_pwm_target = 0;
-		unsigned long __state_fade_end_millis = 0UL;
-		unsigned short __state_fade_default_millis = 0;
+		int16_t __state_fade_pwm_target = 0;
+		uint32_t __state_fade_end_millis = 0UL;
+		uint8_t __state_fade_default_millis = 0;
+		uint8_t __state_step_lockout_millis = 0;
+		uint32_t __state_lockout_end_millis = 0UL;
 		float __state_fade_pwmconst = 0.00;
 		bool __state_fade_inprogress = false;
 		
 		bool __status_update_needed = false;
 		
-		int __find_closest_step(int inPWM);
-		int __sane_in_pwm(int inPWM);
+		uint8_t __find_closest_step(uint16_t inPWM);
+		uint16_t __sane_in_pwm(uint16_t inPWM);
 		
 		void (*__status_callback)(void);
 		bool __status_callback_exists = false;
