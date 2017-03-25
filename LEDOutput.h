@@ -66,6 +66,9 @@ class LEDOutput {
 		// Set the default fade duration, used when changing PWM output
 		void setDimDefaultFade(int inTimeMillis);
 		
+		// Set the step up/down power off lockout time
+		void setDimStepLockout(int inTimeMillis);
+		
 		// Set status update callback. Will be called when LED status changes. 
 		void setStatusCallback(void (*cb)(void));
 		
@@ -91,6 +94,8 @@ class LEDOutput {
 		int __state_fade_pwm_target = 0;
 		unsigned long __state_fade_end_millis = 0UL;
 		unsigned short __state_fade_default_millis = 0;
+		uint8_t __state_step_lockout_millis = 0;
+		unsigned long __state_lockout_end_millis = 0UL;
 		float __state_fade_pwmconst = 0.00;
 		bool __state_fade_inprogress = false;
 		
