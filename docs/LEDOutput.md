@@ -106,19 +106,19 @@ void setup() {
 
 Returns the current PWM output value. 
 
-### `getDimPercent();
+### `getDimPercent()`
 
 Returns the current output value as a percentage of the maximum PWM value. 
 
-### `getDimStep();
+### `getDimStep()`
 
 Returns the current dimming step. 
 
-### `getDimDefaultFade();
+### `getDimDefaultFade()`
 
 Returns the current default dimming fade time. 
 
-### `getPowerOn();
+### `getPowerOn()`
 
 Returns the current power state, as `true` or `false`.
 
