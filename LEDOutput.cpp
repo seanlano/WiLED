@@ -217,8 +217,8 @@ void LEDOutput::setDimStepDown(){
 
 void LEDOutput::setDimPercent(uint8_t inDimPercent){
 	/// Set the desired output level; in terms of a percentage
-	byte percent;
-	int pwm;
+	uint8_t percent; 
+	uint16_t pwm; 
 	// Check input is sane, i.e. is a valid percentage 0-100
 	if (inDimPercent > 100){
 		percent = 100;
@@ -231,8 +231,8 @@ void LEDOutput::setDimPercent(uint8_t inDimPercent){
 	}
 	// Scale the percentage to the range of the PWM values
 	pwm = (percent*MAX_PWM)/100;
-	// Set dim level, to the nearest step
-	setDimPWM(pwm);
+	// Set dim level
+	setDimPWMExact(pwm);
 }
 
 void LEDOutput::setDimPWM(uint16_t inPWM){
