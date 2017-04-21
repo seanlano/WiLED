@@ -70,30 +70,16 @@ void LEDOutput::process(){
 	} // End fade processing
 	
 	// Next, update the PWM output if needed
-	// If the power state is "ON", set the output to the latest PWM value
-	if (__state_power_on){
-		// Check if the output needs updating
-		if (__state_pwm != __state_pwm_last){
-			analogWrite(led_pin,__state_pwm);
-			__state_pwm_last =__state_pwm;
-			// If we are not fading, then call the status update callback
-			if (!__state_fade_inprogress){
-				__status_update_needed = true;
-			}
-		}
-	} 
-	// If the power state is "OFF", set the output to 0 but preserve the
-	// the value in __state_pwm
-	else {
-		if (__state_pwm_last != 0){
-			analogWrite(led_pin,0);
-			__state_pwm_last = 0;
-			// If we are not fading, then call the status update callback
-			if (!__state_fade_inprogress){
-				__status_update_needed = true;
-			}
+	// Check if the output needs updating
+	if (__state_pwm != __state_pwm_last){
+		analogWrite(led_pin,__state_pwm);
+		__state_pwm_last =__state_pwm;
+		// If we are not fading, then call the status update callback
+		if (!__state_fade_inprogress){
+			__status_update_needed = true;
 		}
 	}
+	
 	// Finally, call the status callback if it is needed
 	if (__status_update_needed){
 		// Call the status callback
@@ -108,21 +94,25 @@ void LEDOutput::setPowerOn(bool inPower){
 	/// Turn the LED on or off. Setting PWM level does not turn the LED on,
 	/// it must be turned on explicitly with this function call
 	if (inPower){
-		__state_power_on = true;
+		// Restore the standby PWM level
+		setDimFadeStart(__state_pwm_standby, __state_fade_default_millis);
 	} 
 	else {
-		__state_power_on = false;
+		// Store the current PWM level when turning off 
+		__state_pwm_standby = __state_fade_pwm_target;
+		// Then set the output to 0, fading if enabled 
+		setDimFadeStart(0, __state_fade_default_millis);
 	}
 }
 
 void LEDOutput::setPowerOn(){
 	/// Directly set the power to be "on"
-	__state_power_on = true;
+	setPowerOn(true);
 }
 
 void LEDOutput::setPowerOff(){
 	/// Directly set the power to be "off"
-	__state_power_on = false;
+	setPowerOn(false);
 }
 
 void LEDOutput::setDimStep(uint8_t inDimStep){
@@ -240,14 +230,7 @@ void LEDOutput::setDimPWM(uint16_t inPWM){
 	/// This will round up to the nearest step
 	__sane_pwm = __sane_in_pwm(inPWM);
 	int closest_step = __find_closest_step(__sane_pwm);
-	// If the default fade duration has been set, start a fade event
-	if (__state_fade_default_millis > 0){
-		setDimFadeStart(pwm_dim_levels[closest_step], __state_fade_default_millis);
-	}
-	// Otherwise, just set the value directly
-	else {
-		setDimPWMExact(pwm_dim_levels[closest_step]);
-	}
+	setDimFadeStart(pwm_dim_levels[closest_step], __state_fade_default_millis);
 }
 
 void LEDOutput::setDimPWMExact(uint16_t inPWM){
@@ -281,13 +264,19 @@ void LEDOutput::setDimFadeStart(uint16_t inTargetPWM, uint16_t inTimeMillis){
 	if (inTimeMillis < 0){inTimeMillis = abs(inTimeMillis);}
 	// Store the target PWM value (after sanitising it)
 	__state_fade_pwm_target = __sane_in_pwm(inTargetPWM);
-	// Calculate millis time we need to reach the target at
-	__state_fade_end_millis = millis() + inTimeMillis;
-	// Calculate the rate at which we need to change the PWM output
-	__state_fade_pwmconst = (__state_fade_pwm_target - __state_pwm);
-	__state_fade_pwmconst = __state_fade_pwmconst / inTimeMillis;
-	// Flag that we are in a dimming cycle
-	__state_fade_inprogress = true;
+	// Check we are not fading for zero duration
+	if (inTimeMillis == 0) {
+		// Set the output without fading 
+		setDimPWMExact(__state_fade_pwm_target);
+	} else {
+		// Calculate millis time we need to reach the target at
+		__state_fade_end_millis = millis() + inTimeMillis;
+		// Calculate the rate at which we need to change the PWM output
+		__state_fade_pwmconst = (__state_fade_pwm_target - __state_pwm);
+		__state_fade_pwmconst = __state_fade_pwmconst / inTimeMillis;
+		// Flag that we are in a dimming cycle
+		__state_fade_inprogress = true;
+	}
 }
 
 void LEDOutput::setDimFadeStop(){
@@ -311,30 +300,15 @@ void LEDOutput::setDimStepLockout(uint8_t inTimeMillis){
 }
 
 uint16_t LEDOutput::getDimPWM(){
-	if (__state_power_on){
-		return __state_pwm;
-	} 
-	else {
-		return 0;
-	}
+	return __state_pwm;
 }
 
 uint8_t LEDOutput::getDimPercent(){
-	if (__state_power_on){
-		return __state_percent;
-	} 
-	else {
-		return 0;
-	}
+	return __state_percent;
 }
 
 uint8_t LEDOutput::getDimStep(){
-	if (__state_power_on){
-		return __state_dim_level;
-	} 
-	else {
-		return 0;
-	}
+	return __state_dim_level;
 }
 
 uint8_t LEDOutput::getDimDefaultFade(){
@@ -342,7 +316,11 @@ uint8_t LEDOutput::getDimDefaultFade(){
 }
 
 bool LEDOutput::getPowerOn(){
-	return __state_power_on;
+	if(__state_pwm > 0) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void LEDOutput::setStatusCallback(void (*cb)(void)){
