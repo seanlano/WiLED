@@ -104,8 +104,7 @@ class LEDOutput {
 		uint8_t __find_closest_step(uint16_t inPWM);
 		uint16_t __sane_in_pwm(uint16_t inPWM);
 		
-		void (*__status_callback)(void);
-		bool __status_callback_exists = false;
+		void (*__status_callback)(void) = 0;
 };
 
 #endif

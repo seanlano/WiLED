@@ -97,7 +97,7 @@ void LEDOutput::process(){
 	// Finally, call the status callback if it is needed
 	if (__status_update_needed){
 		// Call the status callback
-		if (__status_callback_exists){
+		if (__status_callback){
 			__status_callback();
 		}
 		__status_update_needed = false;
@@ -348,7 +348,6 @@ bool LEDOutput::getPowerOn(){
 void LEDOutput::setStatusCallback(void (*cb)(void)){
 	/// Store the callback function
 	__status_callback = cb;
-	__status_callback_exists = true;
 }
 
 
