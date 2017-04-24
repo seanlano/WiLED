@@ -91,8 +91,7 @@ void LEDOutput::process(){
 }
 
 void LEDOutput::setPowerOn(bool inPower){
-	/// Turn the LED on or off. Setting PWM level does not turn the LED on,
-	/// it must be turned on explicitly with this function call
+	/// Turn the LED on or off 
 	if (inPower){
 		// Restore the standby PWM level
 		setDimFadeStart(__state_pwm_standby, __state_fade_default_millis);
