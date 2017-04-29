@@ -44,18 +44,23 @@ class IndicatorOutput
 		// Set an exact PWM value
 		void setExact(uint16_t inPWM);
 		
+		void setNormal();
 		// Set the mode number
-		void setBlinkMode(uint8_t inMode);
+		void setBlink(uint8_t inMode);
+		void setDoubleFlash();
 		
 	private:
 		// External value variables 
 		uint8_t __led_pin; 
 		uint8_t __blink_mode = 0; 
+		uint8_t __output_mode = 0;
 		
 		// Internal tracking variables 
 		uint8_t __output_step = 0; 
 		uint16_t __pwm_low = 2; 
 		uint16_t __pwm_high = 255; 
+		uint16_t __pwm_save = 0;
+		uint16_t __pwm_current = 0;
 		uint32_t __output_step_next_millis = 0; 
 		uint16_t __output_step_spacing_millis = 150; 
 };

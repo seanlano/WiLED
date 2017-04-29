@@ -36,53 +36,107 @@ void IndicatorOutput::update()
 	/// Update the PWM output
 	uint32_t millis_now = millis();
 	// Check if we should move to the next output_step
-	if(millis_now > __output_step_next_millis){
-		if(__blink_mode == 0){
-			// Special output for mode 0
-			// Check if we need to loop around to step 0
-			if(__output_step > 6){
-				__output_step = 0;
+	switch(__output_mode){
+		// Normal mode
+		case 0:
+			break;
+		// Blink mode 
+		case 1:
+		{
+			if(millis_now > __output_step_next_millis){
+				if(__blink_mode == 0){
+					// Special output for mode 0
+					// Check if we need to loop around to step 0
+					if(__output_step > 6){
+						__output_step = 0;
+					}
+					// High for step 0-4
+					if(__output_step < 5){
+						setExact(__pwm_high);
+					// Low for step 5-6
+					} else {
+						setExact(__pwm_low);
+					}
+				} else {
+					// Not 0, use algorithm 
+					// Check if we need to loop around to step 0 
+					if(__output_step > (__blink_mode * 2 + 2)){
+						__output_step = 0;
+					}
+					// If output_step is greater than (setting_mode*2-1), set output low 
+					if(__output_step > (__blink_mode * 2 - 1)){
+						setExact(__pwm_low);
+					} else if(__output_step % 2){
+						// If step is odd, set output low
+						setExact(__pwm_low);
+					} else {
+						// If step is even, set output high 
+						setExact(__pwm_high);
+					}
+				}
+				// Set the next update time 
+				__output_step_next_millis = millis_now + __output_step_spacing_millis; 
+				__output_step++;
 			}
-			// High for step 0-4
-			if(__output_step < 5){
-				setExact(__pwm_high);
-			// Low for step 5-6
-			} else {
-				setExact(__pwm_low);
-			}
-		} else {
-			// Not 0, use algorithm 
-			// Check if we need to loop around to step 0 
-			if(__output_step > (__blink_mode * 2 + 2)){
-				__output_step = 0;
-			}
-			// If output_step is greater than (setting_mode*2-1), set output low 
-			if(__output_step > (__blink_mode * 2 - 1)){
-				setExact(__pwm_low);
-			} else if(__output_step % 2){
-				// If step is odd, set output low
-				setExact(__pwm_low);
-			} else {
-				// If step is even, set output high 
-				setExact(__pwm_high);
-			}
+			break;
 		}
-		// Set the next update time 
-		__output_step_next_millis = millis_now + __output_step_spacing_millis; 
-		__output_step++;
+		// Double-flash mode 
+		case 2:
+		{
+			if(millis_now > __output_step_next_millis){
+				// Check if we need to loop around to step 0
+				if(__output_step > 3){
+					__output_step = 0;
+					// End the blink mode, return to normal 
+					setNormal();
+				}
+				// High for step 0,2
+				if((__output_step == 0) || (__output_step == 2)){
+					setExact(__pwm_high);
+				// Off for step 1,3
+				} else {
+					setExact(0);
+				}
+				// Set the next update time 
+				__output_step_next_millis = millis_now + __output_step_spacing_millis; 
+				__output_step++;
+			}
+			break;
+		}
 	}
 }
 
 void IndicatorOutput::setExact(uint16_t inPWM)
 {
 	/// Write out an exact PWM value
-	analogWrite(__led_pin, inPWM);
+	__pwm_current = inPWM;
+	analogWrite(__led_pin, __pwm_current);
 }
 
-void IndicatorOutput::setBlinkMode(uint8_t inMode)
+void IndicatorOutput::setNormal()
+{
+	/// Set output mode to "normal"
+	__output_mode = 0; 
+	// Restore saved value
+	setExact(__pwm_save);
+}
+
+void IndicatorOutput::setBlink(uint8_t inMode)
 {
 	/// Set the mode
 	__blink_mode = inMode;
+	__output_mode = 1; 
+	// Save the previous PWM value
+	__pwm_save = __pwm_current;
+	reset();
+}
+
+void IndicatorOutput::setDoubleFlash()
+{
+	/// Set the mode
+	__output_mode = 2; 
+	// Save the previous PWM value
+	__pwm_save = __pwm_current;
 	reset();
 }
 
@@ -105,12 +159,7 @@ RunMode::RunMode(uint8_t inLEDPin)
 void RunMode::process()
 {
 	/// Update the system state 
-	if(getModeNormal()){
-		// In normal run mode
-	} else {
-		// In settings mode 
-		indicator.update(); 
-	}
+	indicator.update();
 }
 
 void RunMode::next()
@@ -121,7 +170,7 @@ void RunMode::next()
 		if(__setting_mode < NUM_SETTING_MODES){
 			__setting_mode++;
 		}
-		indicator.setBlinkMode(__setting_mode);
+		indicator.setBlink(__setting_mode);
 	}
 }
 
@@ -134,7 +183,7 @@ void RunMode::prev()
 			|| (!INCLUDE_MODE_ZERO && (__setting_mode > 1))){
 			__setting_mode--;
 		}	
-		indicator.setBlinkMode(__setting_mode);
+		indicator.setBlink(__setting_mode);
 	}
 }
 
@@ -142,18 +191,22 @@ void RunMode::select()
 {
 	/// Process a "select" of the current menu item 
 	setModeNormal();
+	indicator.setNormal();
+	indicator.setExact(1);
 }
 
 void RunMode::setModeNormal()
 {
 	/// Enter normal mode 
 	__mode_normal = true;
+	indicator.setNormal();
 }
 
 void RunMode::setModeSettings()
 {
 	/// Enter settings mode 
 	__mode_normal = false;
+	indicator.setBlink(__setting_mode);
 	indicator.reset(); 
 }
 
