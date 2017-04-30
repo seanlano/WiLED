@@ -89,6 +89,7 @@ class LEDOutput {
 		uint8_t __state_percent = 0;
 		int16_t __state_pwm = 0;
 		int16_t __state_pwm_last = 0;
+		int16_t __state_pwm_standby = 0;
 		int16_t __sane_pwm;
 		
 		int16_t __state_fade_pwm_target = 0;
@@ -104,8 +105,7 @@ class LEDOutput {
 		uint8_t __find_closest_step(uint16_t inPWM);
 		uint16_t __sane_in_pwm(uint16_t inPWM);
 		
-		void (*__status_callback)(void);
-		bool __status_callback_exists = false;
+		void (*__status_callback)(void) = 0;
 };
 
 #endif
