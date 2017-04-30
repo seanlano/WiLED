@@ -84,18 +84,18 @@ void IndicatorOutput::update()
 		case 2:
 		{
 			if(millis_now > __output_step_next_millis){
-				// Check if we need to loop around to step 0
-				if(__output_step > 3){
-					__output_step = 0;
-					// End the blink mode, return to normal 
-					setNormal();
-				}
 				// High for step 0,2
 				if((__output_step == 0) || (__output_step == 2)){
 					setExact(__pwm_high);
 				// Off for step 1,3
 				} else {
 					setExact(0);
+				}
+				// Check if we need to loop around to step 0
+				if(__output_step > 3){
+					__output_step = 0;
+					// End the blink mode, return to normal 
+					setNormal();
 				}
 				// Set the next update time 
 				__output_step_next_millis = millis_now + __output_step_spacing_millis; 
@@ -109,34 +109,36 @@ void IndicatorOutput::update()
 void IndicatorOutput::setExact(uint16_t inPWM)
 {
 	/// Write out an exact PWM value
-	__pwm_current = inPWM;
-	analogWrite(__led_pin, __pwm_current);
+	analogWrite(__led_pin, inPWM);
 }
 
 void IndicatorOutput::setNormal()
 {
 	/// Set output mode to "normal"
-	__output_mode = 0; 
-	// Restore saved value
-	setExact(__pwm_save);
+	setNormal(__pwm_normal);
+}
+
+void IndicatorOutput::setNormal(uint16_t inPWM)
+{
+	/// Set output mode to "normal", with a given PWM value 
+	// Update the normal PWM value 
+	__pwm_normal = inPWM;
+	__output_mode = 0;
+	setExact(__pwm_normal);
 }
 
 void IndicatorOutput::setBlink(uint8_t inMode)
 {
-	/// Set the mode
+	/// Set the output mode to "blink"
 	__blink_mode = inMode;
 	__output_mode = 1; 
-	// Save the previous PWM value
-	__pwm_save = __pwm_current;
 	reset();
 }
 
 void IndicatorOutput::setDoubleFlash()
 {
-	/// Set the mode
+	/// Set the output mode to "double-flash"
 	__output_mode = 2; 
-	// Save the previous PWM value
-	__pwm_save = __pwm_current;
 	reset();
 }
 
@@ -192,7 +194,6 @@ void RunMode::select()
 	/// Process a "select" of the current menu item 
 	setModeNormal();
 	indicator.setNormal();
-	indicator.setExact(1);
 }
 
 void RunMode::setModeNormal()

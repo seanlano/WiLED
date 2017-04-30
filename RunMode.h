@@ -45,6 +45,7 @@ class IndicatorOutput
 		void setExact(uint16_t inPWM);
 		
 		void setNormal();
+		void setNormal(uint16_t inPWM);
 		// Set the mode number
 		void setBlink(uint8_t inMode);
 		void setDoubleFlash();
@@ -59,8 +60,7 @@ class IndicatorOutput
 		uint8_t __output_step = 0; 
 		uint16_t __pwm_low = 2; 
 		uint16_t __pwm_high = 255; 
-		uint16_t __pwm_save = 0;
-		uint16_t __pwm_current = 0;
+		uint16_t __pwm_normal = 0;
 		uint32_t __output_step_next_millis = 0; 
 		uint16_t __output_step_spacing_millis = 150; 
 };
