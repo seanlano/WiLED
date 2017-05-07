@@ -30,8 +30,6 @@
 class IndicatorOutput 
 {
 	public:
-		// Accept an instantiation wihtout arguments, although it won't do anything 
-		IndicatorOutput();
 		// Instantiate the IndicatorOutput class with a given LED pin 
 		IndicatorOutput(uint8_t inLEDPin);
 		
@@ -46,37 +44,37 @@ class IndicatorOutput
 		
 		void setNormal();
 		void setNormal(uint16_t inPWM);
-		// Set the mode number
+		// Set the blink mode number
+		void setBlink();
 		void setBlink(uint8_t inMode);
+		
+		// Set double-flash mode 
 		void setDoubleFlash();
 		
-	private:
+	protected:
 		// External value variables 
 		uint8_t __led_pin; 
 		uint8_t __blink_mode = 0; 
 		uint8_t __output_mode = 0;
 		
+	private: 
 		// Internal tracking variables 
 		uint8_t __output_step = 0; 
 		uint16_t __pwm_low = 2; 
 		uint16_t __pwm_high = 255; 
 		uint16_t __pwm_normal = 0;
 		uint32_t __output_step_next_millis = 0; 
-		uint16_t __output_step_spacing_millis = 150; 
+		uint16_t __output_step_spacing_millis = 200; 
 };
 
-class RunMode 
+class RunMode : public IndicatorOutput 
 {
 	public:
 		// Instantiate the RunMode class with a given indicator LED pin 
 		RunMode(uint8_t inLEDPin);
 		
 		// Run in each cycle of the main loop 
-		void process(); 
-		
-		// Set the run mode 
-		void setModeSettings(); 
-		void setModeNormal(); 
+		void update(); 
 		
 		// Select button press 
 		void select(); 
@@ -88,12 +86,8 @@ class RunMode
 		// Define various get functions
 		bool getModeNormal(); 
 		
-		IndicatorOutput indicator; 
+	protected:
 		
-	private:
-		// Run mode
-		bool __mode_normal = true;  
-		uint8_t __setting_mode = 0; 
 };
 
 
