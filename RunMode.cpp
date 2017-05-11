@@ -20,10 +20,6 @@
 
 #include "RunMode.h"
 
-IndicatorOutput::IndicatorOutput()
-{
-	/// Do nothing, no paramter given
-}
 
 IndicatorOutput::IndicatorOutput(uint8_t inLEDPin)
 {
@@ -127,18 +123,24 @@ void IndicatorOutput::setNormal(uint16_t inPWM)
 	setExact(__pwm_normal);
 }
 
+void IndicatorOutput::setBlink()
+{
+	/// Set the output mode to "blink"
+	__output_mode = 1; 
+	reset();
+}
+
 void IndicatorOutput::setBlink(uint8_t inMode)
 {
 	/// Set the output mode to "blink"
 	__blink_mode = inMode;
-	__output_mode = 1; 
-	reset();
+	setBlink();
 }
 
 void IndicatorOutput::setDoubleFlash()
 {
 	/// Set the output mode to "double-flash"
-	__output_mode = 2; 
+	__output_mode = 2;
 	reset();
 }
 
@@ -152,68 +154,55 @@ void IndicatorOutput::reset()
 
 
 
-RunMode::RunMode(uint8_t inLEDPin)
+RunMode::RunMode(uint8_t inLEDPin) : IndicatorOutput(inLEDPin)
 {
 	/// Initialise the mode controller 
-	indicator = IndicatorOutput(inLEDPin); 
 }
 
-void RunMode::process()
+void RunMode::update()
 {
 	/// Update the system state 
-	indicator.update();
+	IndicatorOutput::update();
 }
 
 void RunMode::next()
 {
-	/// Process the "next" menu item 
-	if(!getModeNormal()){
+	/// Process the "next" menu item. if on blink mode 
+	if(IndicatorOutput::__output_mode == 1){
 		// In settings mode, move to next setting number
-		if(__setting_mode < NUM_SETTING_MODES){
-			__setting_mode++;
+		if(IndicatorOutput::__blink_mode < NUM_SETTING_MODES){
+			IndicatorOutput::__blink_mode++;
 		}
-		indicator.setBlink(__setting_mode);
+		IndicatorOutput::setBlink();
 	}
 }
 
 void RunMode::prev()
 {
-	/// Process the "previous" menu item 
-	if(!getModeNormal()){
+	/// Process the "previous" menu item. if on blink mode 
+	if(IndicatorOutput::__output_mode == 1){
 		// In settings mode, move to previous setting number
-		if((INCLUDE_MODE_ZERO && (__setting_mode > 0))
-			|| (!INCLUDE_MODE_ZERO && (__setting_mode > 1))){
-			__setting_mode--;
-		}	
-		indicator.setBlink(__setting_mode);
+		if((INCLUDE_MODE_ZERO && (IndicatorOutput::__blink_mode > 0))
+			|| (!INCLUDE_MODE_ZERO && (IndicatorOutput::__blink_mode > 1))){
+			IndicatorOutput::__blink_mode--;
+		}
+		IndicatorOutput::setBlink();
 	}
 }
 
 void RunMode::select()
 {
 	/// Process a "select" of the current menu item 
-	setModeNormal();
-	indicator.setNormal();
-}
-
-void RunMode::setModeNormal()
-{
-	/// Enter normal mode 
-	__mode_normal = true;
-	indicator.setNormal();
-}
-
-void RunMode::setModeSettings()
-{
-	/// Enter settings mode 
-	__mode_normal = false;
-	indicator.setBlink(__setting_mode);
-	indicator.reset(); 
+	IndicatorOutput::setNormal();
 }
 
 bool RunMode::getModeNormal()
 {
 	/// Return true if in normal run mode 
-	return __mode_normal;
+	if(IndicatorOutput::__output_mode == 0){
+		return true;
+	} else {
+		return false;
+	}
 }
 
