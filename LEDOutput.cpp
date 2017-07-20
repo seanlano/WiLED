@@ -134,6 +134,10 @@ void LEDOutput::setDimStep(uint8_t inDimStep){
 
 void LEDOutput::setDimStepUp(){
 	/// Increase the dim level by one, if not already maximum
+	// Check for sanity
+	if(__state_dim_level_goal >= NUM_DIM_STEPS){
+		__state_dim_level_goal = NUM_DIM_STEPS-1;
+	} 
 	uint32_t millis_now = millis();
 	switch (__state_dim_level_goal){
 		case NUM_DIM_STEPS-1: 
@@ -157,6 +161,7 @@ void LEDOutput::setDimStepUp(){
 		}
 		default:
 		{
+			
 			// Increase dim step 
 			__state_dim_level_goal++;
 			// Store the end time for dim step lockout
@@ -170,6 +175,10 @@ void LEDOutput::setDimStepUp(){
 
 void LEDOutput::setDimStepDown(){
 	/// Decrease the dim level by one, if not already zero
+	// Check for sanity
+	if(__state_dim_level_goal >= NUM_DIM_STEPS){
+		__state_dim_level_goal = NUM_DIM_STEPS-1;
+	} 
 	uint32_t millis_now = millis();
 	switch (__state_dim_level_goal){
 		case 0: 
