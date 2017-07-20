@@ -76,7 +76,7 @@ If set to a non-zero value, any call to change the LED output will fade for this
 
 ### `setDimStepLockout(inTimeMillis)`
 
-If set to a non-zero value, `setDimStepUp` and `setDimStepDown` will use this lockout time when attempting to move to the highest or the zero step. NOTE: value must be 0-255 milliseconds. 
+If set to a non-zero value, `setDimStepUp` and `setDimStepDown` will enforce this lockout time when attempting to move to the maximum or the zero step, i.e. a fast turn of the rotary encoder dial will require a short delay before turning completely off or to full output. NOTE: value must be 0-255 milliseconds. 
 
 ### `setStatusCallback(void (*cb)(void))`
 
