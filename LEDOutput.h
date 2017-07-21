@@ -60,13 +60,16 @@ class LEDOutput {
 		// Begin fading PWM level over specified duration
 		void setDimFadeStart(uint16_t inTargetPWM, uint16_t inTimeMillis);
 		
+		// Set the LED to turn off after a delay 
+		void setAutoOffTimer(uint32_t inTimeMillis);
+		
 		// Stop fading, and jump straight to target PWM state
 		void setDimFadeStop(); 
 		
 		// Set the default fade duration, used when changing PWM output
 		void setDimDefaultFade(uint8_t inTimeMillis);
 		
-		// Set the step up/down power off lockout time
+		// Set a lockout time to enforce a delay before either maximum step or zero step 
 		void setDimStepLockout(uint8_t inTimeMillis);
 		
 		// Set status update callback. Will be called when LED status changes. 
@@ -99,11 +102,14 @@ class LEDOutput {
 		uint32_t __state_lockout_end_millis = 0UL;
 		float __state_fade_pwmconst = 0.00;
 		bool __state_fade_inprogress = false;
+		bool __state_autooff = false;
+		uint32_t __state_autooff_millis = 0UL;
 		
 		bool __status_update_needed = false;
 		
 		uint8_t __find_closest_step(uint16_t inPWM);
 		uint16_t __sane_in_pwm(uint16_t inPWM);
+		uint32_t __millis_now = 0;
 		
 		void (*__status_callback)(void) = 0;
 };
