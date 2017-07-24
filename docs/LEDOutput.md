@@ -13,6 +13,7 @@ This provides a more even perception of brightness change between each step than
 * Discrete dimming steps, using an exponential function to determine the PWM level for each step 
 * Support for smoothly fading to a new PWM output level
 * Support for a status callback, called when a fade is complete 
+* Ability to set an automatic power off timer 
 
 ## Usage 
 
@@ -35,10 +36,6 @@ void loop() {
 ### `process()`
 
 Must be called frequently in the main loop to update the output PWM value. 
-
-### `setPowerOn()` and `setPowerOff()`
-
-Sets the output on or off. Can be called without an argument, or as `setPowerOn(true)` or `setPowerOn(false)`. 
 
 ### `setDimStep(inDimStep)`
 
@@ -65,6 +62,10 @@ Set the LED output to the specified PWM, i.e. 0-255 (if using 8 bit PWM). Simila
 ### `setDimFadeStart(inTargetPWM, inTimeMillis)`
 
 Start fading the LED output to the specified PWM level, over the specifed number of milliseconds. 
+
+### `setAutoOffTimer(inTimeMillis);`
+
+Set the LED to turn off after a delay of the specified number of milliseconds. 
 
 ### `setDimFadeStop()`
 
