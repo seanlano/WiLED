@@ -63,7 +63,7 @@ void LEDOutput::process(){
 			// Calculate how many millis we have left to fade for
 			float millis_remain = __state_fade_end_millis - __millis_now;
 			// Calculate which PWM step we should be at
-			byte pwm_delta = __state_fade_pwm_target - int(millis_remain * __state_fade_pwmconst);
+			uint16_t pwm_delta = __state_fade_pwm_target - int(millis_remain * __state_fade_pwmconst);
 			// Set the output to that value
 			setDimPWMExact(pwm_delta);
 		}
@@ -98,30 +98,6 @@ void LEDOutput::process(){
 		}
 		__status_update_needed = false;
 	}
-}
-
-void LEDOutput::setPowerOn(bool inPower){
-	/// Turn the LED on or off 
-	if (inPower){
-		// Restore the standby PWM level
-		setDimFadeStart(__state_pwm_standby, __state_fade_default_millis);
-	} 
-	else {
-		// Store the current PWM level when turning off 
-		__state_pwm_standby = __state_fade_pwm_target;
-		// Then set the output to 0, fading if enabled 
-		setDimFadeStart(0, __state_fade_default_millis);
-	}
-}
-
-void LEDOutput::setPowerOn(){
-	/// Directly set the power to be "on"
-	setPowerOn(true);
-}
-
-void LEDOutput::setPowerOff(){
-	/// Directly set the power to be "off"
-	setPowerOn(false);
 }
 
 void LEDOutput::setDimStep(uint8_t inDimStep){

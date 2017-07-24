@@ -36,11 +36,6 @@ class LEDOutput {
 		// Run in each cycle of the main loop, to update the LED output
 		void process();
 		
-		// Turn the LED on or off
-		void setPowerOn(bool inPower);
-		void setPowerOn();  // Directly turn on
-		void setPowerOff(); // Directly turn off
-		
 		// Set the desired output level, in terms of the dimming step
 		void setDimStep(uint8_t inDimStep);
 		
@@ -92,7 +87,6 @@ class LEDOutput {
 		uint8_t __state_percent = 0;
 		int16_t __state_pwm = 0;
 		int16_t __state_pwm_last = 0;
-		int16_t __state_pwm_standby = 0;
 		int16_t __sane_pwm;
 		
 		int16_t __state_fade_pwm_target = 0;
