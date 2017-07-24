@@ -257,6 +257,8 @@ void LEDOutput::setDimFadeStart(uint16_t inTargetPWM, uint16_t inTimeMillis){
 	/// of the given number of milliseconds
 	// Store the target PWM value (after sanitising it)
 	__state_fade_pwm_target = __sane_in_pwm(inTargetPWM);
+	// Also update the target dim level
+	__state_dim_level_goal = __find_closest_step(__state_fade_pwm_target);
 	// Check we are not fading for zero duration
 	if (inTimeMillis == 0) {
 		// Set the output without fading 
