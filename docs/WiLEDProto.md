@@ -60,48 +60,48 @@ The following list details the hexadecimal code and corresponding message type, 
   - 0x00: **Beacon**.
     - Broadcast
     - _4 bytes_
-    -  1-4:	Device milliseconds uptime (32 bit integer)
+    -  `1-4:	Device milliseconds uptime (32 bit integer)`
   - 0x01: **Device Status**. 
     - Broadcast
     - _5 bytes_
-    - 1:	Output Level
-    - 2: 	Attached Group 1
-    - 3: 	Attached Group 2
-    - 4: 	Attached Group 3
-    - 5: 	Attached Group 4
+    - `1:	Output Level`
+    - `2: 	Attached Group 1`
+    - `3: 	Attached Group 2`
+    - `4: 	Attached Group 3`
+    - `5: 	Attached Group 4`
   - 0x10: **Set Individual (single)**. 
     - Broadcast
     - _3 bytes_ 
-    - 1: 	Output Level
-    - 2-3: 	Device Address
+    - `1: 	Output Level`
+    - `2-3: 	Device Address`
   - 0x11: **Set Individuals (two)**. 
     - Broadcast
     - _5 bytes_
-    - 1: 	Output Level
-    - 2-3: 	Device Address 1
-    - 4-5: 	Device Address 2
+    - `1: 	Output Level`
+    - `2-3: 	Device Address 1`
+    - `4-5: 	Device Address 2`
   - 0x12: **Set Individuals (three)**. 
     - Broadcast
     - _7 bytes_
-    - 1: 	Output Level
-    - 2-3: 	Device Address 1
-    - 4-5: 	Device Address 2
-    - 6-7: 	Device Address 3
+    - `1: 	Output Level`
+    - `2-3: 	Device Address 1`
+    - `4-5: 	Device Address 2`
+    - `6-7: 	Device Address 3`
   - 0x20: **Set Groups**. 
     - Broadcast
     - _4 bytes_ 
-    - 1: 	Output Level
-    - 2: 	Group 1
-    - 3: 	Group 2
-    - 4: 	Group 3
+    - `1: 	Output Level`
+    - `2: 	Group 1`
+    - `3: 	Group 2`
+    - `4: 	Group 3`
   - 0x30: **Attach Groups**. 
     - Addressed
     - _4 bytes_
-    - 1: 	Group 1 setting
-    - 2: 	Group 2 setting
-    - 3: 	Group 3 setting
-    - 4: 	Group 4 setting
-  - 
+    - `1: 	Group 1 setting`
+    - `2: 	Group 2 setting`
+    - `3: 	Group 3 setting`
+    - `4: 	Group 4 setting`
+
 
 ### Payload
 
