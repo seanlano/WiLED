@@ -15,7 +15,7 @@ A WiLP message shall consist of three main sections: a **header**, a **payload**
 
 The header shall consist of:
 
-- 1 byte:  Magic Number padding (binary 0b10101010, hex 0xAA)
+- 1 byte:  Magic Number padding (binary `0b10101010`, hex `0xAA`)
 - 2 bytes: Source Address
 - 2 bytes: Destination Address
 - 2 bytes: Reset Counter
@@ -57,50 +57,70 @@ Several Message Type specifications are defined, using an 8 bit number. The Mess
 
 The following list details the hexadecimal code and corresponding message type, and then the value that each byte in the payload will contain: 
 
-  - 0x00: **Beacon**.
+  - **0x00: Beacon**.
     - Broadcast
     - _4 bytes_
-    -  `1-4:	Device milliseconds uptime (32 bit integer)`
-  - 0x01: **Device Status**. 
+    - `1-4: Device milliseconds uptime (32 bit integer)`
+  - **0x01: Device Status**. 
     - Broadcast
     - _5 bytes_
-    - `1:	Output Level`
-    - `2: 	Attached Group 1`
-    - `3: 	Attached Group 2`
-    - `4: 	Attached Group 3`
-    - `5: 	Attached Group 4`
-  - 0x10: **Set Individual (single)**. 
+    - `1:   Output Level`
+    - `2:   Attached Group 1`
+    - `3:   Attached Group 2`
+    - `4:   Attached Group 3`
+    - `5:   Attached Group 4`
+  - **0x10: Set Individual (single)**. 
     - Broadcast
     - _3 bytes_ 
-    - `1: 	Output Level`
-    - `2-3: 	Device Address`
-  - 0x11: **Set Individuals (two)**. 
+    - `1:   Output Level`
+    - `2-3: Device Address`
+  - **0x11: Set Individuals (two)**. 
     - Broadcast
     - _5 bytes_
-    - `1: 	Output Level`
-    - `2-3: 	Device Address 1`
-    - `4-5: 	Device Address 2`
-  - 0x12: **Set Individuals (three)**. 
+    - `1:   Output Level`
+    - `2-3: Device Address 1`
+    - `4-5: Device Address 2`
+  - **0x12: Set Individuals (three)**. 
     - Broadcast
     - _7 bytes_
-    - `1: 	Output Level`
-    - `2-3: 	Device Address 1`
-    - `4-5: 	Device Address 2`
-    - `6-7: 	Device Address 3`
-  - 0x20: **Set Groups**. 
+    - `1:   Output Level`
+    - `2-3: Device Address 1`
+    - `4-5: Device Address 2`
+    - `6-7: Device Address 3`
+  - **0x20: Set Groups**. 
     - Broadcast
     - _4 bytes_ 
-    - `1: 	Output Level`
-    - `2: 	Group 1`
-    - `3: 	Group 2`
-    - `4: 	Group 3`
-  - 0x30: **Attach Groups**. 
+    - `1:   Output Level`
+    - `2:   Group 1`
+    - `3:   Group 2`
+    - `4:   Group 3`
+  - **0x30: Attach Groups**. 
     - Addressed
     - _4 bytes_
-    - `1: 	Group 1 setting`
-    - `2: 	Group 2 setting`
-    - `3: 	Group 3 setting`
-    - `4: 	Group 4 setting`
+    - `1:   Group 1 setting`
+    - `2:   Group 2 setting`
+    - `3:   Group 3 setting`
+    - `4:   Group 4 setting`
+  - **0x40: Set Fade Timeout**.
+    - Addressed
+    - _3 bytes_
+    - `1:   'Please respond' flag`
+    - `2-3: Fade duration (milliseconds)`
+  - **0x41: Fade Timeout Status**.
+    - Broadcast
+    - _3 bytes_
+    - `1:   'Changed since last' flag`
+    - `2-3: Fade duration (milliseconds)`
+  - **0xEE: Not Understood Message Type**.
+    - Broadcast
+    - _4 bytes_
+    - `1-2: Not Understood source address`
+    - `3:   Not Understood message type`
+    - `4:   Not Understood reason code`
+      - `0x01: No handler callback defined`
+      - `0x02: Message Type not implemented`
+      - `0x08: Other error`
+  - 
 
 
 ### Payload
