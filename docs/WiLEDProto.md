@@ -120,7 +120,9 @@ The following list details the hexadecimal code and corresponding message type, 
       - `0x01: No handler callback defined`
       - `0x02: Message Type not implemented`
       - `0x08: Other error`
-  - 
+  - **0xF0 - 0xFF: Extension Types**.
+    - These are special messages types, which can be used by the developer to add additional custom information into a WiLP message
+    - There must be a callback defined for each extension message type, which defines the length of the payload and what to do to process it
 
 
 ### Payload
