@@ -1,6 +1,6 @@
 /*
 * LEDOutput class
-* Part of the "wi-led" project, https://github.com/seanlano/wi-led
+* Part of the "WiLED" project, https://github.com/seanlano/WiLED
 * A C++ class for controlling a PWM dimmable LED on an Arduino. 
 * Copyright (C) 2017 Sean Lanigan. 
 * 

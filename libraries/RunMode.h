@@ -1,6 +1,6 @@
 /*
 * RunMode class
-* Part of the "wi-led" project, https://github.com/seanlano/wi-led
+* Part of the "WiLED" project, https://github.com/seanlano/WiLED
 * A class for controlling run mode or settings mode. 
 * Copyright (C) 2017 Sean Lanigan. 
 * 
