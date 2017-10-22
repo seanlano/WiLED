@@ -23,9 +23,11 @@
 
 #include <SPI.h>
 #include <RH_RF69.h>
-#include "lib/LEDOutput.h"
-#include "lib/RunMode.h"
-#include "lib/Rotary.h"
+
+#include "src/LEDOutput.h"
+#include "src/RunMode.h"
+#include "src/Rotary.h"
+#include "src/WiLEDProto.h"
 
 // Hard-wired pins for Feather M0
 #define RFM69_CS      8
