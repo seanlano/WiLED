@@ -31,43 +31,46 @@
 #include <SPI.h>
 #include <RH_RF69.h>
 
-#include "lib/LEDOutput.h"
-#include "lib/RunMode.h"
-#include "lib/Rotary.h"
+#include "src/LEDOutput.h"
+#include "src/RunMode.h"
+#include "src/Rotary.h"
+#include "src/WiLEDProto.h"
 
 
 #define RFM69_CS      16
 #define RFM69_IRQ     15
 
 
-const uint8_t SERVER_ADDRESS = 0x01;
-const uint8_t CLIENT_ADDRESS = 0x11;
+const uint16_t SERVER_ADDRESS = 0x0001;
+const uint16_t CLIENT_ADDRESS = 0x1234;
+
+WiLEDProto handler(CLIENT_ADDRESS);
 
 // We connect to Wi-Fi so that the ESP8266 OTA updates can be used - this makes
 // development much easier. 
 const char* ssid = "SSID"; // Clearly this needs to be changed to the actual SSID
-const char* password = "PASSWORD"; // And this needs to be the password 
+const char* password = "PASS"; // And this needs to be the password 
 
 
 // Singleton instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_IRQ);
 
+uint8_t msg_status = 0;
+
 void sendMessage()
 {
   Serial.println(F("Sending to rf69_server with Datagram"));
-  uint8_t data[RH_RF69_MAX_MESSAGE_LEN];
+  uint8_t data[MAXIMUM_MESSAGE_LENGTH];
   uint8_t len = sizeof(data);
 
-  String message = "Apprx_16b:";
-  message += millis();
-
-  message.toCharArray((char *)data, len);
+  msg_status = handler.sendMessageBeacon(millis());
+  handler.copyToBuffer(data);
   
   // Send a message to rf69_server
 
   // Send a message to manager_server
   rf69.waitCAD();
-  rf69.send(data, sizeof(data));
+  rf69.send(data, MAXIMUM_MESSAGE_LENGTH);
   rf69.waitPacketSent();
 
   // Now wait for a reply
