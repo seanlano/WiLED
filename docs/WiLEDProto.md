@@ -57,11 +57,11 @@ Several Message Type specifications are defined, using an 8 bit number. The Mess
 
 The following list details the hexadecimal code and corresponding message type, and then the value that each byte in the payload will contain: 
 
-  - **0x00: Beacon**.
+  - **0x01: Beacon**.
     - Broadcast
     - _4 bytes_
     - `1-4: Device milliseconds uptime (32 bit integer)`
-  - **0x01: Device Status**. 
+  - **0x02: Device Status**. 
     - Broadcast
     - _5 bytes_
     - `1:   Output Level`
