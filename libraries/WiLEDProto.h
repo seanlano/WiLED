@@ -31,7 +31,11 @@
 
 #define WiLP_Beacon 0x01
 #define WiLP_Device_Status 0x02
+
 #define WiLP_RETURN_SUCCESS 0
+#define WiLP_RETURN_INVALID_BUFFER 255
+#define WiLP_RETURN_NOT_THIS_DEST 1
+#define WiLP_RETURN_UNKNOWN_TYPE 2
 
 struct AddressTracker {
   uint16_t address;
@@ -57,6 +61,12 @@ class WiLEDProto {
 
     void copyToBuffer(uint8_t * inBuffer);
 
+    uint8_t getLastReceivedType();
+    uint16_t getLastReceivedSource();
+    uint16_t getLastReceivedDestination();
+    uint16_t getLastReceivedResetCounter();
+    uint16_t getLastReceivedMessageCounter();
+
   protected:
     uint16_t __address = 0;
     uint16_t __self_message_counter = 0;
@@ -68,6 +78,7 @@ class WiLEDProto {
     uint16_t __last_received_message_counter = 0;
     uint8_t __last_received_payload_length = 0;
     uint8_t __last_received_payload[MAXIMUM_PAYLOAD_LENGTH];
+
     uint8_t __outgoing_message_buffer[MAXIMUM_MESSAGE_LENGTH];
 
     void __setTypeByte(uint8_t inType);
