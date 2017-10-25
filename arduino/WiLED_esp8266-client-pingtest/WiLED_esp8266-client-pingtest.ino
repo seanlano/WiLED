@@ -41,6 +41,11 @@
 #define RFM69_IRQ     15
 
 
+// Uncomment this #define to enable the "retransmit test" - i.e. send the same message twice.
+// This should be detected by any receiver and marked as invalid. 
+//#define RETRANSMIT_TEST
+
+
 const uint16_t SERVER_ADDRESS = 0x0001;
 const uint16_t CLIENT_ADDRESS = 0x1234;
 
@@ -72,6 +77,13 @@ void sendMessage()
   rf69.waitCAD();
   rf69.send(data, MAXIMUM_MESSAGE_LENGTH);
   rf69.waitPacketSent();
+
+  #ifdef RETRANSMIT_TEST
+  delay(15);
+  rf69.waitCAD();
+  rf69.send(data, MAXIMUM_MESSAGE_LENGTH);
+  rf69.waitPacketSent();
+  #endif
 
   // Now wait for a reply
   uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
