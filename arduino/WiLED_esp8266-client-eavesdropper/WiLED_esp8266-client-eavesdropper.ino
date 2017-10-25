@@ -131,8 +131,8 @@ void loop()
     if (rf69.recv(buf, &len))
     {
       this_message = millis();
-      Serial.print("got message: ");
-      Serial.println((char*)buf);
+      //Serial.print("got message: ");
+      //Serial.println((char*)buf);
 
       Serial.print("HEX: ");
       for(int idx=0; idx<20; idx++){
@@ -142,6 +142,12 @@ void loop()
       Serial.println(". ");
 
       uint8_t status_code = handler.processMessage(buf);
+      int16_t msg_check_code = -1;
+      
+      if(status_code == WiLP_RETURN_SUCCESS){
+        msg_check_code = handler.getLastReceivedMessageCounterValidation();
+      }
+      
       Serial.print("Message analysis. Return code:");
       Serial.println(status_code, DEC);
       Serial.print("  Source device: ");
@@ -150,8 +156,17 @@ void loop()
       Serial.println(handler.getLastReceivedDestination(), HEX);
       Serial.print("  Message type: ");
       Serial.println(handler.getLastReceivedType(), HEX);
+      Serial.print("  Reset counter: ");
+      Serial.println(handler.getLastReceivedResetCounter(), DEC);
       Serial.print("  Message counter: ");
-      Serial.println(handler.getLastReceivedMessageCounter(), HEX);
+      Serial.print(handler.getLastReceivedMessageCounter(), DEC);
+      if(msg_check_code == WiLP_RETURN_SUCCESS){
+        Serial.println(" (VALID)");
+      } else if(msg_check_code == WiLP_RETURN_ADDED_ADDRESS){
+        Serial.println(" (ADDED NEW)");
+      } else {
+        Serial.println(" (INVALID)");
+      }
       
       //Serial.print("RSSI: ");
       //Serial.println(rf69.lastRssi(), DEC);

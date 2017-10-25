@@ -65,13 +65,12 @@ class WiLEDProto {
 
     void copyToBuffer(uint8_t * inBuffer);
 
-    uint8_t checkMessageCounter(uint16_t inAddress, uint16_t inMessageCounter);
-
     uint8_t getLastReceivedType();
     uint16_t getLastReceivedSource();
     uint16_t getLastReceivedDestination();
     uint16_t getLastReceivedResetCounter();
     uint16_t getLastReceivedMessageCounter();
+    uint8_t getLastReceivedMessageCounterValidation();
 
   protected:
     uint16_t __address = 0;
@@ -82,6 +81,7 @@ class WiLEDProto {
     uint16_t __last_received_destination = 0;
     uint16_t __last_received_reset_counter = 0;
     uint16_t __last_received_message_counter = 0;
+    uint8_t __last_received_message_counter_validation = 0;
     uint8_t __last_received_payload_length = 0;
     uint8_t __last_received_payload[MAXIMUM_PAYLOAD_LENGTH];
 
@@ -90,6 +90,8 @@ class WiLEDProto {
     void __setTypeByte(uint8_t inType);
     void __setDestinationByte(uint16_t inDestination);
     void __setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValue);
+
+    uint8_t __checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inMessageCounter);
 
     //uint8_t (*__cb_set_reset_counter)(uint16_t address, uint16_t reset_counter);
     //uint16_t (*__cb_read_reset_counter)(uint16_t address);

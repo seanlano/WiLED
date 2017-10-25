@@ -68,9 +68,9 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   if((__last_received_destination != __address) and (__last_received_destination != 0xFFFF)){
     return WiLP_RETURN_NOT_THIS_DEST;
   }
-
   // TODO: Check reset counter
-  // TODO: Check message counter
+
+  __last_received_message_counter_validation = __checkAndUpdateMessageCounter(__last_received_source, __last_received_message_counter);
 
   // Determine the payload length
   switch(__last_received_type){
@@ -126,56 +126,6 @@ void WiLEDProto::copyToBuffer(uint8_t * inBuffer){
 }
 
 
-uint8_t WiLEDProto::checkMessageCounter(uint16_t inAddress, uint16_t inMessageCounter){
-  // Loop over all the known stored addresses
-  for(uint16_t idx = 0; idx < __count_addresses; idx++){
-    if(__addresses[idx].address == inAddress){
-      if(__addresses[idx].messageCounter < inMessageCounter){
-        __addresses[idx].messageCounter = inMessageCounter;
-        return WiLP_RETURN_SUCCESS;
-      }
-      else {
-        return WiLP_RETURN_INVALID_MSG_CTR;
-      }
-    }
-  }
-  // If we reach this point, we did not previously know the address
-  // Add the address to our known addresses
-  if(__count_addresses < MAXIMUM_STORED_ADDRESSES){
-    __addresses[__count_addresses].address = inAddress;
-    __addresses[__count_addresses].messageCounter = inMessageCounter;
-    // Increment the counter
-    __count_addresses++;
-    return WiLP_RETURN_ADDED_ADDRESS;
-  } else {
-    // At maximum known addresses!
-    return WiLP_RETURN_AT_MAX_ADDRESSES;
-  }
-  // We should never get here, but just in case
-  return WiLP_RETURN_OTHER_ERROR;
-}
-
-/*
-uint8_t WiLEDProto::__setMessageCounter(uint16_t inIndex, uint16_t inMessageCounter){
-  // Set the message counter to the
-  __addresses[inIndex].messageCounter = inMessageCounter;
-
-  // Check if we know this address
-  for(uint16_t idx = 0; idx < __count_addresses; idx++){
-    if(__addresses[idx].address == inAddress){
-      __addresses[idx].messageCounter = inMessageCounter;
-      return WiLP_RETURN_SUCCESS;
-    }
-  }
-  // If we did not find the address, add it to the array
-  __addresses[idx].address = inAddress;
-  __addresses[idx].messageCounter = inMessageCounter;
-  // Increment the counter
-  __count_addresses++;
-  return WiLP_RETURN_SUCCESS;
-}
-*/
-
 uint8_t WiLEDProto::getLastReceivedType(){
   return __last_received_type;
 }
@@ -194,6 +144,10 @@ uint16_t WiLEDProto::getLastReceivedResetCounter(){
 
 uint16_t WiLEDProto::getLastReceivedMessageCounter(){
   return __last_received_message_counter;
+}
+
+uint8_t WiLEDProto::getLastReceivedMessageCounterValidation(){
+  return __last_received_message_counter_validation;
 }
 
 /************ Private methods ***************************/
@@ -215,4 +169,38 @@ void WiLEDProto::__setDestinationByte(uint16_t inDestination){
 // Set the specified "payload" byte in the output buffer
 void WiLEDProto::__setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValue){
   __outgoing_message_buffer[10+inPayloadOffset] = inPayloadValue;
+}
+
+
+uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inMessageCounter){
+  // Loop over all the known stored addresses
+  for(uint16_t idx = 0; idx < __count_addresses; idx++){
+    // Look for the requested address
+    if(__addresses[idx].address == inAddress){
+      // Stored message counter must be less than the current counter
+      if(__addresses[idx].messageCounter < inMessageCounter){
+        // If valid, update the stored message counter
+        __addresses[idx].messageCounter = inMessageCounter;
+        return WiLP_RETURN_SUCCESS;
+      }
+      else {
+        // Message is invalid, ignore it
+        return WiLP_RETURN_INVALID_MSG_CTR;
+      }
+    }
+  }
+  // If we reach this point, we did not previously know the address
+  // Add the address to our known addresses
+  if(__count_addresses < MAXIMUM_STORED_ADDRESSES){
+    __addresses[__count_addresses].address = inAddress;
+    __addresses[__count_addresses].messageCounter = inMessageCounter;
+    // Increment the counter
+    __count_addresses++;
+    return WiLP_RETURN_ADDED_ADDRESS;
+  } else {
+    // At maximum known addresses!
+    return WiLP_RETURN_AT_MAX_ADDRESSES;
+  }
+  // We should never get here, but just in case
+  return WiLP_RETURN_OTHER_ERROR;
 }
