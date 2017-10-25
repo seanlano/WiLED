@@ -33,7 +33,11 @@
 #define WiLP_Device_Status 0x02
 
 #define WiLP_RETURN_SUCCESS 0
-#define WiLP_RETURN_INVALID_BUFFER 255
+#define WiLP_RETURN_INVALID_MSG_CTR 200
+#define WiLP_RETURN_ADDED_ADDRESS 201
+#define WiLP_RETURN_AT_MAX_ADDRESSES 202
+#define WiLP_RETURN_INVALID_BUFFER 254
+#define WiLP_RETURN_OTHER_ERROR 255
 #define WiLP_RETURN_NOT_THIS_DEST 1
 #define WiLP_RETURN_UNKNOWN_TYPE 2
 
@@ -60,6 +64,8 @@ class WiLEDProto {
     uint8_t sendMessageDeviceStatus(uint8_t inOutput, uint8_t inGroup1, uint8_t inGroup2, uint8_t inGroup3, uint8_t inGroup4);
 
     void copyToBuffer(uint8_t * inBuffer);
+
+    uint8_t checkMessageCounter(uint16_t inAddress, uint16_t inMessageCounter);
 
     uint8_t getLastReceivedType();
     uint16_t getLastReceivedSource();
@@ -88,7 +94,10 @@ class WiLEDProto {
     //uint8_t (*__cb_set_reset_counter)(uint16_t address, uint16_t reset_counter);
     //uint16_t (*__cb_read_reset_counter)(uint16_t address);
 
+    // Store an array of message counter structs
     AddressTracker __addresses[MAXIMUM_STORED_ADDRESSES];
+    // Store a count of how many unique addresses we have seen
+    uint16_t __count_addresses = 0;
 };
 
 
