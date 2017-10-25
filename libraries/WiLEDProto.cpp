@@ -43,6 +43,11 @@ WiLEDProto::WiLEDProto(uint16_t inAddress){
 uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   // Check if first byte is magic number
   if(inBuffer[0] != 0xAA){
+    __last_received_destination = 0;
+    __last_received_source = 0;
+    __last_received_type = 0;
+    __last_received_reset_counter = 0;
+    __last_received_message_counter = 0;
     return WiLP_RETURN_INVALID_BUFFER;
   }
   // Store the received message destination (left shift)
@@ -58,11 +63,11 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   __last_received_reset_counter += inBuffer[6];
   // Store the received message counter
   __last_received_message_counter = (inBuffer[7] << 8);
-  __last_received_message_counter = inBuffer[8];
+  __last_received_message_counter += inBuffer[8];
   // Check if we are the destination
-  //if((__last_received_destination != __address) or (__last_received_destination != 0xFFFF)){
-  //  return WiLP_RETURN_NOT_THIS_DEST;
-  //}
+  if((__last_received_destination != __address) and (__last_received_destination != 0xFFFF)){
+    return WiLP_RETURN_NOT_THIS_DEST;
+  }
   // Determine the payload length
   switch(__last_received_type){
     case WiLP_Beacon:
