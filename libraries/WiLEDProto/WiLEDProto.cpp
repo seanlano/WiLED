@@ -172,15 +172,50 @@ void WiLEDProto::__setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValu
 }
 
 
+/*
+Need to do something like this:
+
+template <class T> int EEPROM_writeAnything(int ee, const T& value)
+{
+    const byte* p = (const byte*)(const void*)&value;
+    unsigned int i;
+    for (i = 0; i < sizeof(value); i++)
+          EEPROM.write(ee++, *p++);
+    return i;
+}
+
+template <class T> int EEPROM_readAnything(int ee, T& value)
+{
+    byte* p = (byte*)(void*)&value;
+    unsigned int i;
+    for (i = 0; i < sizeof(value); i++)
+          *p++ = EEPROM.read(ee++);
+    return i;
+}
+
+*/
+
+uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t* inStorageOffset, uint16_t inLength){
+  // Make a 1-byte pointer to the array of 2-byte values
+  uint8_t* p = (uint8_t*)(void*)outArray;
+  for (uint16_t idx = 0; idx < inLength; idx++){
+    // Read from the storage location into the array
+    //p[idx] = EEPROM.read(idx + inStorageOffset);
+  }
+  // TODO: Some kind of checking, instead of always success
+  return WiLP_RETURN_SUCCESS;
+}
+
+
 uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inMessageCounter){
   // Loop over all the known stored addresses
   for(uint16_t idx = 0; idx < __count_addresses; idx++){
     // Look for the requested address
-    if(__addresses[idx].address == inAddress){
+    if(__address_array[idx] == inAddress){
       // Stored message counter must be less than the current counter
-      if(__addresses[idx].messageCounter < inMessageCounter){
+      if(__message_counter_array[idx] < inMessageCounter){
         // If valid, update the stored message counter
-        __addresses[idx].messageCounter = inMessageCounter;
+        __message_counter_array[idx] = inMessageCounter;
         return WiLP_RETURN_SUCCESS;
       }
       else {
@@ -192,8 +227,8 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
   // If we reach this point, we did not previously know the address
   // Add the address to our known addresses
   if(__count_addresses < MAXIMUM_STORED_ADDRESSES){
-    __addresses[__count_addresses].address = inAddress;
-    __addresses[__count_addresses].messageCounter = inMessageCounter;
+    __address_array[__count_addresses] = inAddress;
+    __message_counter_array[__count_addresses] = inMessageCounter;
     // Increment the counter
     __count_addresses++;
     return WiLP_RETURN_ADDED_ADDRESS;

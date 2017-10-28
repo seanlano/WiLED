@@ -41,12 +41,6 @@
 #define WiLP_RETURN_NOT_THIS_DEST 1
 #define WiLP_RETURN_UNKNOWN_TYPE 2
 
-struct AddressTracker {
-  uint16_t address;
-  uint16_t messageCounter;
-  uint16_t resetCounter;
-};
-
 
 class WiLEDProto {
   public:
@@ -96,10 +90,15 @@ class WiLEDProto {
     //uint8_t (*__cb_set_reset_counter)(uint16_t address, uint16_t reset_counter);
     //uint16_t (*__cb_read_reset_counter)(uint16_t address);
 
-    // Store an array of message counter structs
-    AddressTracker __addresses[MAXIMUM_STORED_ADDRESSES];
     // Store a count of how many unique addresses we have seen
     uint16_t __count_addresses = 0;
+
+    uint8_t __restoreFromStorage_uint16t(uint16_t* outArray, uint16_t* inStorageOffset, uint16_t inLength);
+
+    // Store (linked) arrays to track the other nodes' states
+    uint16_t __address_array[MAXIMUM_STORED_ADDRESSES];
+    uint16_t __reset_counter_array[MAXIMUM_STORED_ADDRESSES];
+    uint16_t __message_counter_array[MAXIMUM_STORED_ADDRESSES];
 };
 
 
