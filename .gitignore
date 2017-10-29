@@ -34,3 +34,4 @@
 .clang_complete
 .gcc-flags.json
 .travis.yml
+libraries/readme.txt
