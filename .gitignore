@@ -27,3 +27,10 @@
 *.exe
 *.out
 *.app
+
+# PlatformIO things
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+.travis.yml
