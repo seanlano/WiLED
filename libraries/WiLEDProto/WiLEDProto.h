@@ -25,7 +25,7 @@
 
 #include <Arduino.h>
 
-#define MAXIMUM_STORED_ADDRESSES 255
+#define MAXIMUM_STORED_ADDRESSES 100
 #define MAXIMUM_MESSAGE_LENGTH 25
 #define MAXIMUM_PAYLOAD_LENGTH 8
 
@@ -40,7 +40,17 @@
 #define WiLP_RETURN_OTHER_ERROR 255
 #define WiLP_RETURN_NOT_THIS_DEST 1
 #define WiLP_RETURN_UNKNOWN_TYPE 2
+#define WiLP_RETURN_NOT_INIT 3
 
+// Arrange the storage locations of the arrays.
+// __address_array is stored at location 0
+#define STORAGE_ADDRESSES_LOCATION (0)
+// __reset_counter_array is stored immediately following __address_array
+#define STORAGE_RESET_LOCATION (STORAGE_ADDRESSES_LOCATION + sizeof(__address_array))
+// __count_addresses is then stored after __reset_counter_array
+#define STORAGE_COUNT_LOCATION (STORAGE_RESET_LOCATION + sizeof(__reset_counter_array))
+// __self_reset_counter is then stored after __count_addresses
+#define STORAGE_SELF_RESET_LOCATION (STORAGE_COUNT_LOCATION + sizeof(__count_addresses))
 
 class WiLEDProto {
   public:
@@ -52,6 +62,12 @@ class WiLEDProto {
     //  uint8_t (*inSetResetCounterCallback)(uint16_t address, uint16_t reset_counter),
     //  uint16_t (*inReadResetCounterCallback)(uint16_t address)
     //);
+
+    // Set storage read and write callbacks (usually EEPROM)
+    void setStorageWrite(void (*cb)(uint16_t, uint8_t));
+    void setStorageRead(uint8_t (*cb)(uint16_t));
+    void setStorageCommit(void (*cb)(void));
+
     uint8_t processMessage(uint8_t* inBuffer);
 
     uint8_t sendMessageBeacon(uint32_t inUptime);
@@ -68,6 +84,7 @@ class WiLEDProto {
 
   protected:
     uint16_t __address = 0;
+    uint16_t __self_reset_counter = 0;
     uint16_t __self_message_counter = 0;
 
     uint8_t __last_received_type = 0x00;
@@ -87,18 +104,21 @@ class WiLEDProto {
 
     uint8_t __checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inMessageCounter);
 
-    //uint8_t (*__cb_set_reset_counter)(uint16_t address, uint16_t reset_counter);
-    //uint16_t (*__cb_read_reset_counter)(uint16_t address);
+    // Store callback functions for storage read and write (usually EEPROM)
+    void (*__storage_write_callback)(uint16_t, uint8_t) = 0;
+    uint8_t (*__storage_read_callback)(uint16_t) = 0;
+    void (*__storage_commit_callback)(void) = 0;
 
     // Store a count of how many unique addresses we have seen
     uint16_t __count_addresses = 0;
 
-    uint8_t __restoreFromStorage_uint16t(uint16_t* outArray, uint16_t* inStorageOffset, uint16_t inLength);
+    uint8_t __restoreFromStorage_uint16t(uint16_t* outArray, uint16_t inStorageOffset, uint16_t inLength);
+    uint8_t __addToStorage_uint16t(uint16_t* inArray, uint16_t inStorageOffset, uint16_t inLength);
 
-    // Store (linked) arrays to track the other nodes' states
-    uint16_t __address_array[MAXIMUM_STORED_ADDRESSES];
-    uint16_t __reset_counter_array[MAXIMUM_STORED_ADDRESSES];
-    uint16_t __message_counter_array[MAXIMUM_STORED_ADDRESSES];
+    // Store (linked) arrays to track the other nodes' states, initialise to zero
+    uint16_t __address_array[MAXIMUM_STORED_ADDRESSES] = {0};
+    uint16_t __reset_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
+    uint16_t __message_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
 };
 
 

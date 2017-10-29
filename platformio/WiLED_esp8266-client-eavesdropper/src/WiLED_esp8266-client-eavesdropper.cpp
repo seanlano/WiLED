@@ -26,6 +26,7 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <EEPROM.h>
 
 #include <string.h>
 
@@ -51,6 +52,20 @@ const char* password = "PASS"; // And this needs to be the password
 
 // Singleton instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_IRQ);
+
+
+// Create function to pass to WiLP class for reading EEPROM storage
+uint8_t EEPROMreader(uint16_t inAddress){
+  return EEPROM.read(inAddress);
+}
+// Create function to pass to WiLP class for writing to EEPROM storage
+void EEPROMwriter(uint16_t inAddress, uint8_t inValue){
+  EEPROM.write(inAddress, inValue);
+}
+// Create function to pass to WiLP class for committing EEPROM storage
+void EEPROMcommitter(){
+  EEPROM.commit();
+}
 
 
 void setup()
@@ -113,6 +128,18 @@ void setup()
                   };
   rf69.setEncryptionKey(key);
 
+  EEPROM.begin(4096);
+  handler.setStorageRead(&EEPROMreader);
+  handler.setStorageWrite(&EEPROMwriter);
+  handler.setStorageCommit(&EEPROMcommitter);
+
+/*
+  for(uint16_t idx = 0; idx<4096; idx++){
+    EEPROM.write(idx,0);
+  }
+  EEPROM.commit();
+  Serial.println("EEPROM has been erased!");
+*/
 }
 
 uint32_t last_message = 0;

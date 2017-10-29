@@ -39,6 +39,42 @@ WiLEDProto::WiLEDProto(uint16_t inAddress){
 }
 
 
+// Set the storage write callback (usually EEPROM.write)
+void WiLEDProto::setStorageWrite(void (*cb)(uint16_t, uint8_t)){
+	/// Store the callback function
+	__storage_write_callback = cb;
+}
+
+
+// Set the storage read callback (usually EEPROM.read)
+void WiLEDProto::setStorageRead(uint8_t (*cb)(uint16_t)){
+	/// Store the callback function
+	__storage_read_callback = cb;
+  // Read the addresses and reset counter arrays from storage
+  // TODO: Check the return value of these
+  __restoreFromStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
+  __restoreFromStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
+  __restoreFromStorage_uint16t(&__count_addresses, STORAGE_COUNT_LOCATION, sizeof(__count_addresses));
+
+  // Arduino-specific debug
+  Serial.print("Loaded addresses: ");
+  Serial.println(__count_addresses);
+  Serial.print("Addresses: ");
+  for(uint16_t idx=0; idx < __count_addresses; idx++){
+    Serial.print(__address_array[idx], HEX);
+    Serial.print(", ");
+  }
+  Serial.println();
+}
+
+
+// Set the storage read callback (usually EEPROM.commit)
+void WiLEDProto::setStorageCommit(void (*cb)(void)){
+	/// Store the callback function
+	__storage_commit_callback = cb;
+}
+
+
 // Process a received message
 uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   // Check if first byte is magic number
@@ -172,41 +208,41 @@ void WiLEDProto::__setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValu
 }
 
 
-/*
-Need to do something like this:
-
-template <class T> int EEPROM_writeAnything(int ee, const T& value)
-{
-    const byte* p = (const byte*)(const void*)&value;
-    unsigned int i;
-    for (i = 0; i < sizeof(value); i++)
-          EEPROM.write(ee++, *p++);
-    return i;
-}
-
-template <class T> int EEPROM_readAnything(int ee, T& value)
-{
-    byte* p = (byte*)(void*)&value;
-    unsigned int i;
-    for (i = 0; i < sizeof(value); i++)
-          *p++ = EEPROM.read(ee++);
-    return i;
-}
-
-*/
-
-uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t* inStorageOffset, uint16_t inLength){
+uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t inStorageOffset, uint16_t inLength){
   // Make a 1-byte pointer to the array of 2-byte values
   uint8_t* p = (uint8_t*)(void*)outArray;
-  for (uint16_t idx = 0; idx < inLength; idx++){
-    // Read from the storage location into the array
-    //p[idx] = EEPROM.read(idx + inStorageOffset);
+  // First, check callback has been set
+  if(__storage_read_callback > 0){
+    for (uint16_t idx = 0; idx < inLength; idx++){
+      // Read from the storage location into the array
+      p[idx] = (*__storage_read_callback)(idx + inStorageOffset);
+    }
+    return WiLP_RETURN_SUCCESS;
+  } else {
+    // If callback not set, return with an error
+    return WiLP_RETURN_NOT_INIT;
   }
-  // TODO: Some kind of checking, instead of always success
-  return WiLP_RETURN_SUCCESS;
 }
 
 
+uint8_t WiLEDProto::__addToStorage_uint16t(uint16_t* inArray, uint16_t inStorageOffset, uint16_t inLength){
+  // Make a 1-byte pointer to the array of 2-byte values
+  uint8_t* p = (uint8_t*)(void*)inArray;
+  // First, check callback has been set
+  if(__storage_write_callback > 0){
+    for (uint16_t idx = 0; idx < inLength; idx++){
+      // Write from the array into the storage location
+      (*__storage_write_callback)(idx + inStorageOffset, p[idx]);
+    }
+    //(*__storage_commit_callback)();
+    return WiLP_RETURN_SUCCESS;
+  } else {
+    // If callback not set, return with an error
+    return WiLP_RETURN_NOT_INIT;
+  }
+}
+
+// TODO: Add reset counter test as well
 uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inMessageCounter){
   // Loop over all the known stored addresses
   for(uint16_t idx = 0; idx < __count_addresses; idx++){
@@ -231,6 +267,11 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
     __message_counter_array[__count_addresses] = inMessageCounter;
     // Increment the counter
     __count_addresses++;
+    // Save the new __address_array and __count_addresses to storage
+    // TODO: Check return value of these
+    __addToStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
+    __addToStorage_uint16t(&__count_addresses, STORAGE_COUNT_LOCATION, sizeof(__count_addresses));
+    __storage_commit_callback();
     return WiLP_RETURN_ADDED_ADDRESS;
   } else {
     // At maximum known addresses!
