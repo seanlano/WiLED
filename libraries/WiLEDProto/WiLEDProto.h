@@ -34,8 +34,9 @@
 
 #define WiLP_RETURN_SUCCESS 0
 #define WiLP_RETURN_INVALID_MSG_CTR 200
-#define WiLP_RETURN_ADDED_ADDRESS 201
-#define WiLP_RETURN_AT_MAX_ADDRESSES 202
+#define WiLP_RETURN_INVALID_RST_CTR 201
+#define WiLP_RETURN_ADDED_ADDRESS 202
+#define WiLP_RETURN_AT_MAX_ADDRESSES 203
 #define WiLP_RETURN_INVALID_BUFFER 254
 #define WiLP_RETURN_OTHER_ERROR 255
 #define WiLP_RETURN_NOT_THIS_DEST 1
@@ -102,7 +103,7 @@ class WiLEDProto {
     void __setDestinationByte(uint16_t inDestination);
     void __setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValue);
 
-    uint8_t __checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inMessageCounter);
+    uint8_t __checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inResetCounter, uint16_t inMessageCounter);
 
     // Store callback functions for storage read and write (usually EEPROM)
     void (*__storage_write_callback)(uint16_t, uint8_t) = 0;
