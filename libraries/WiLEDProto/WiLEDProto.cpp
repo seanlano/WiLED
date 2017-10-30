@@ -51,29 +51,7 @@ void WiLEDProto::setStorageWrite(void (*cb)(uint16_t, uint8_t)){
 void WiLEDProto::setStorageRead(uint8_t (*cb)(uint16_t)){
 	/// Store the callback function
 	__storage_read_callback = cb;
-  // TODO: Move this to a separate function
-  // Read the addresses and reset counter arrays from storage
-  // TODO: Check the return value of these
-  __restoreFromStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
-  __restoreFromStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
-  __restoreFromStorage_uint16t(&__count_addresses, STORAGE_COUNT_LOCATION, sizeof(__count_addresses));
-  __restoreFromStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
-  __self_reset_counter++;
-  __addToStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
-  __storage_commit_callback();
-
-  // Arduino-specific debug
-  Serial.print("Loaded addresses: ");
-  Serial.println(__count_addresses);
-  Serial.print("Addresses: ");
-  for(uint16_t idx=0; idx < __count_addresses; idx++){
-    Serial.print(__address_array[idx], HEX);
-    Serial.print(", ");
-  }
-  Serial.println();
-  Serial.print("This device's reset counter: ");
-  Serial.println(__self_reset_counter);
-  Serial.println();
+  __loadFromStorage();
 }
 
 
@@ -113,7 +91,6 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   if((__last_received_destination != __address) and (__last_received_destination != 0xFFFF)){
     return WiLP_RETURN_NOT_THIS_DEST;
   }
-  // TODO: Check reset counter
 
   __last_received_message_counter_validation = __checkAndUpdateMessageCounter(__last_received_source, __last_received_reset_counter, __last_received_message_counter);
 
@@ -158,6 +135,7 @@ void WiLEDProto::copyToBuffer(uint8_t * inBuffer){
   __outgoing_message_buffer[6] = (__self_reset_counter);
 
   // Increment and set message counter bytes (big endian)
+  // TODO: Handle overflow of message counter
   __self_message_counter++;
   __outgoing_message_buffer[7] = (__self_message_counter >> 8);
   __outgoing_message_buffer[8] = (__self_message_counter);
@@ -260,6 +238,35 @@ uint8_t WiLEDProto::__addToStorage_uint16t(uint16_t* inArray, uint16_t inStorage
     return WiLP_RETURN_NOT_INIT;
   }
 }
+
+
+void WiLEDProto::__loadFromStorage(){
+  // Read the addresses and reset counter arrays from storage
+  if(__storage_commit_callback > 0 && __storage_write_callback > 0){
+    // TODO: Check the return value of these
+    __restoreFromStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
+    __restoreFromStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
+    __restoreFromStorage_uint16t(&__count_addresses, STORAGE_COUNT_LOCATION, sizeof(__count_addresses));
+    __restoreFromStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
+    __self_reset_counter++;
+    __addToStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
+    __storage_commit_callback();
+
+    // Arduino-specific debug
+    Serial.print("Loaded addresses: ");
+    Serial.println(__count_addresses);
+    Serial.print("Addresses: ");
+    for(uint16_t idx=0; idx < __count_addresses; idx++){
+      Serial.print(__address_array[idx], HEX);
+      Serial.print(", ");
+    }
+    Serial.println();
+    Serial.print("This device's reset counter: ");
+    Serial.println(__self_reset_counter);
+    Serial.println();
+  }
+}
+
 
 // TODO: Add reset counter test as well
 uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inResetCounter, uint16_t inMessageCounter){
