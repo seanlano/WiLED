@@ -44,8 +44,6 @@
 #define ROTARY_B 2
 
 
-WiLEDProto handler(0x1000);
-
 const char* ssid = "SSID"; // Clearly this needs to be changed to the actual SSID
 const char* password = "PASS"; // And this needs to be the password
 
@@ -66,6 +64,9 @@ void EEPROMwriter(uint16_t inAddress, uint8_t inValue){
 void EEPROMcommitter(){
   EEPROM.commit();
 }
+
+
+WiLEDProto handler(0x1000, &EEPROMreader, &EEPROMwriter, &EEPROMcommitter);
 
 
 void setup()
@@ -138,9 +139,7 @@ void setup()
   Serial.println("EEPROM has been erased!");
 */
 
-  handler.setStorageCommit(&EEPROMcommitter);
-  handler.setStorageWrite(&EEPROMwriter);
-  handler.setStorageRead(&EEPROMreader);
+  handler.initStorage();
 }
 
 uint32_t last_message = 0;

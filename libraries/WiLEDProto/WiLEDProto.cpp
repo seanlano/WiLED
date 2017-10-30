@@ -24,8 +24,16 @@
 /************ Public methods *****************************/
 
 // Initialise the WiLEDProto class with its address
-WiLEDProto::WiLEDProto(uint16_t inAddress){
-  // TODO: Add storage callbacks to constructor
+WiLEDProto::WiLEDProto(
+  uint16_t inAddress,
+  uint8_t (*inStorageReadCB)(uint16_t),
+  void (*inStorageWriteCB)(uint16_t, uint8_t),
+  void (*inStorageCommitCB)(void)
+){
+  // Store callbacks
+  __storage_read_callback = inStorageReadCB;
+  __storage_write_callback = inStorageWriteCB;
+  __storage_commit_callback = inStorageCommitCB;
   // Store the address, must not be 0 or 65535
   if(inAddress > 0 && inAddress < 65535){
     __address = inAddress;
@@ -40,25 +48,31 @@ WiLEDProto::WiLEDProto(uint16_t inAddress){
 }
 
 
-// Set the storage write callback (usually EEPROM.write)
-void WiLEDProto::setStorageWrite(void (*cb)(uint16_t, uint8_t)){
-	/// Store the callback function
-	__storage_write_callback = cb;
-}
+void WiLEDProto::initStorage(){
+  // Read the addresses and reset counter arrays from storage
+  if(__storage_commit_callback > 0 && __storage_write_callback > 0){
+    // TODO: Check the return value of these
+    __restoreFromStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
+    __restoreFromStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
+    __restoreFromStorage_uint16t(&__count_addresses, STORAGE_COUNT_LOCATION, sizeof(__count_addresses));
+    __restoreFromStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
+    __self_reset_counter++;
+    __addToStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
+    __storage_commit_callback();
 
-
-// Set the storage read callback (usually EEPROM.read)
-void WiLEDProto::setStorageRead(uint8_t (*cb)(uint16_t)){
-	/// Store the callback function
-	__storage_read_callback = cb;
-  __loadFromStorage();
-}
-
-
-// Set the storage read callback (usually EEPROM.commit)
-void WiLEDProto::setStorageCommit(void (*cb)(void)){
-	/// Store the callback function
-	__storage_commit_callback = cb;
+    // Arduino-specific debug
+    Serial.print("Loaded addresses: ");
+    Serial.println(__count_addresses);
+    Serial.print("Addresses: ");
+    for(uint16_t idx=0; idx < __count_addresses; idx++){
+      Serial.print(__address_array[idx], HEX);
+      Serial.print(", ");
+    }
+    Serial.println();
+    Serial.print("This device's reset counter: ");
+    Serial.println(__self_reset_counter);
+    Serial.println();
+  }
 }
 
 
@@ -240,35 +254,6 @@ uint8_t WiLEDProto::__addToStorage_uint16t(uint16_t* inArray, uint16_t inStorage
 }
 
 
-void WiLEDProto::__loadFromStorage(){
-  // Read the addresses and reset counter arrays from storage
-  if(__storage_commit_callback > 0 && __storage_write_callback > 0){
-    // TODO: Check the return value of these
-    __restoreFromStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
-    __restoreFromStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
-    __restoreFromStorage_uint16t(&__count_addresses, STORAGE_COUNT_LOCATION, sizeof(__count_addresses));
-    __restoreFromStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
-    __self_reset_counter++;
-    __addToStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
-    __storage_commit_callback();
-
-    // Arduino-specific debug
-    Serial.print("Loaded addresses: ");
-    Serial.println(__count_addresses);
-    Serial.print("Addresses: ");
-    for(uint16_t idx=0; idx < __count_addresses; idx++){
-      Serial.print(__address_array[idx], HEX);
-      Serial.print(", ");
-    }
-    Serial.println();
-    Serial.print("This device's reset counter: ");
-    Serial.println(__self_reset_counter);
-    Serial.println();
-  }
-}
-
-
-// TODO: Add reset counter test as well
 uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inResetCounter, uint16_t inMessageCounter){
   // Loop over all the known stored addresses
   for(uint16_t idx = 0; idx < __count_addresses; idx++){

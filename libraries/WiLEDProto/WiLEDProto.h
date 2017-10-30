@@ -56,18 +56,13 @@
 class WiLEDProto {
   public:
     // Initialise with a single argument
-    WiLEDProto(uint16_t inAddress);
-    // Initialise with reset counter callbacks
-    //WiLEDProto(
-    //  uint16_t inAddress,
-    //  uint8_t (*inSetResetCounterCallback)(uint16_t address, uint16_t reset_counter),
-    //  uint16_t (*inReadResetCounterCallback)(uint16_t address)
-    //);
+    WiLEDProto(
+      uint16_t inAddress,
+      uint8_t (*inStorageReadCB)(uint16_t),
+      void (*inStorageWriteCB)(uint16_t, uint8_t),
+      void (*inStorageCommitCB)(void));
 
-    // Set storage read and write callbacks (usually EEPROM)
-    void setStorageWrite(void (*cb)(uint16_t, uint8_t));
-    void setStorageRead(uint8_t (*cb)(uint16_t));
-    void setStorageCommit(void (*cb)(void));
+    void initStorage();
 
     uint8_t processMessage(uint8_t* inBuffer);
 
@@ -102,7 +97,6 @@ class WiLEDProto {
     void __setTypeByte(uint8_t inType);
     void __setDestinationByte(uint16_t inDestination);
     void __setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValue);
-    void __loadFromStorage();
 
     uint8_t __checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inResetCounter, uint16_t inMessageCounter);
 

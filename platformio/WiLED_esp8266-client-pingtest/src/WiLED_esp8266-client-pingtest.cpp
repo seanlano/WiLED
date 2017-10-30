@@ -50,7 +50,6 @@
 const uint16_t SERVER_ADDRESS = 0x0001;
 const uint16_t CLIENT_ADDRESS = 0x1234;
 
-WiLEDProto handler(CLIENT_ADDRESS);
 
 // We connect to Wi-Fi so that the ESP8266 OTA updates can be used - this makes
 // development much easier.
@@ -74,6 +73,9 @@ void EEPROMwriter(uint16_t inAddress, uint8_t inValue){
 void EEPROMcommitter(){
   EEPROM.commit();
 }
+
+
+WiLEDProto handler(CLIENT_ADDRESS, &EEPROMreader, &EEPROMwriter, &EEPROMcommitter);
 
 
 uint8_t msg_status = 0;
@@ -203,9 +205,7 @@ void setup()
   Serial.println("EEPROM has been erased!");
 */
 
-  handler.setStorageCommit(&EEPROMcommitter);
-  handler.setStorageWrite(&EEPROMwriter);
-  handler.setStorageRead(&EEPROMreader);
+  handler.initStorage();
 
   next_fire = millis() + 5000;
 }
