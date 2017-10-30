@@ -34,6 +34,8 @@ The current system plan is to use an RFM-69 radio to connect the lighting device
 
 The Rotary library for Arduino, by Ben Buxton, has been used and the files `Rotary.h` and `Rotary.cpp` are included in this project. [See here for the original source](https://github.com/brianlow/Rotary). It is GPLv3 licensed. 
 
+Additionally, the wonderful RadioHead library from Mike McCauley and AirSpayce has been used via an inclusion through PlatformIO. [See here for the homepage](http://www.airspayce.com/mikem/arduino/RadioHead/index.html). It is GPLv2 licensed (not clear if this is GPLv2 _only_ or GPLv2+). 
+
 ## License
 
 This project is released under the terms of the GNU GPL version 3 (or later). Please see [LICENSE](LICENSE) for details. 
