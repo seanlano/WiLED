@@ -194,9 +194,6 @@ void setup()
   rf69.setCADTimeout(2);
 
   EEPROM.begin(4096);
-  handler.setStorageRead(&EEPROMreader);
-  handler.setStorageWrite(&EEPROMwriter);
-  handler.setStorageCommit(&EEPROMcommitter);
 
 /*
   for(uint16_t idx = 0; idx<4096; idx++){
@@ -205,6 +202,10 @@ void setup()
   EEPROM.commit();
   Serial.println("EEPROM has been erased!");
 */
+
+  handler.setStorageCommit(&EEPROMcommitter);
+  handler.setStorageWrite(&EEPROMwriter);
+  handler.setStorageRead(&EEPROMreader);
 
   next_fire = millis() + 5000;
 }

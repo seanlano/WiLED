@@ -129,9 +129,6 @@ void setup()
   rf69.setEncryptionKey(key);
 
   EEPROM.begin(4096);
-  handler.setStorageRead(&EEPROMreader);
-  handler.setStorageWrite(&EEPROMwriter);
-  handler.setStorageCommit(&EEPROMcommitter);
 
 /*
   for(uint16_t idx = 0; idx<4096; idx++){
@@ -140,6 +137,10 @@ void setup()
   EEPROM.commit();
   Serial.println("EEPROM has been erased!");
 */
+
+  handler.setStorageCommit(&EEPROMcommitter);
+  handler.setStorageWrite(&EEPROMwriter);
+  handler.setStorageRead(&EEPROMreader);
 }
 
 uint32_t last_message = 0;
@@ -175,7 +176,7 @@ void loop()
         msg_check_code = handler.getLastReceivedMessageCounterValidation();
       }
 
-      Serial.print("Message analysis. Return code:");
+      Serial.print("Message analysis. Return code: ");
       Serial.println(status_code, DEC);
       Serial.print("  Source device: ");
       Serial.println(handler.getLastReceivedSource(), HEX);
@@ -191,8 +192,12 @@ void loop()
         Serial.println(" (VALID)");
       } else if(msg_check_code == WiLP_RETURN_ADDED_ADDRESS){
         Serial.println(" (ADDED NEW)");
+      } else if(msg_check_code == WiLP_RETURN_INVALID_RST_CTR){
+        Serial.println(" (INVALID RST)");
+      } else if(msg_check_code == WiLP_RETURN_INVALID_MSG_CTR){
+        Serial.println(" (INVALID MSG)");
       } else {
-        Serial.println(" (INVALID)");
+        Serial.println(" (OTHER ERROR)");
       }
 
       //Serial.print("RSSI: ");
