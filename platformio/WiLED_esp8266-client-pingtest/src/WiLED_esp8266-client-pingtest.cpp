@@ -106,16 +106,52 @@ void sendMessage()
   // Now wait for a reply
   uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
   len = sizeof(buf);
-
-  if (rf69.waitAvailableTimeout(10))
+  // Wait for up to 15 ms for a reply
+  if (rf69.waitAvailableTimeout(15))
   {
     // Should be a reply message for us now
     if (rf69.recv(buf, &len))
     {
-      Serial.print("got reply: ");
-      Serial.println((char*)buf);
-      Serial.print("RSSI: ");
-      Serial.println(rf69.lastRssi(), DEC);
+      Serial.print("HEX: ");
+      for(int idx=0; idx<20; idx++){
+        Serial.print(buf[idx], HEX);
+        Serial.print(" ");
+      }
+      Serial.println(". ");
+
+      uint8_t status_code = handler.processMessage(buf);
+      int16_t msg_check_code = -1;
+
+      if(status_code == WiLP_RETURN_SUCCESS){
+        msg_check_code = handler.getLastReceivedMessageCounterValidation();
+      }
+
+      Serial.print("Message analysis. Return code: ");
+      Serial.println(status_code, DEC);
+      Serial.print("  Source device: ");
+      Serial.println(handler.getLastReceivedSource(), HEX);
+      Serial.print("  Destination device: ");
+      Serial.println(handler.getLastReceivedDestination(), HEX);
+      Serial.print("  Message type: ");
+      Serial.println(handler.getLastReceivedType(), HEX);
+      Serial.print("  Reset counter: ");
+      Serial.println(handler.getLastReceivedResetCounter(), DEC);
+      Serial.print("  Message counter: ");
+      Serial.print(handler.getLastReceivedMessageCounter(), DEC);
+      if(msg_check_code == WiLP_RETURN_SUCCESS){
+        Serial.println(" (VALID)");
+      } else if(msg_check_code == WiLP_RETURN_ADDED_ADDRESS){
+        Serial.println(" (ADDED NEW)");
+      } else if(msg_check_code == WiLP_RETURN_INVALID_RST_CTR){
+        Serial.println(" (INVALID RST)");
+      } else if(msg_check_code == WiLP_RETURN_INVALID_MSG_CTR){
+        Serial.println(" (INVALID MSG)");
+      } else {
+        Serial.println(" (OTHER ERROR)");
+      }
+      //Serial.print("RSSI: ");
+      //Serial.println(rf69.lastRssi(), DEC);
+      Serial.println();
     }
     else
     {
