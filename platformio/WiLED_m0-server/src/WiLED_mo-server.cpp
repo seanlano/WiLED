@@ -1,33 +1,30 @@
-/* WiLED_m0-server.ino
+/* WiLED_m0-server.cpp
 * Part of the "WiLED" project, https://github.com/seanlano/WiLED
-* An Arduino project for controlling a PWM dimmable LED through an RFM69
-* packet radio. . 
-* Copyright (C) 2017 Sean Lanigan. 
-* 
+* An Arduino/PlatformIO project for controlling a PWM dimmable LED through an
+* RFM69 packet radio.
+* Copyright (C) 2017 Sean Lanigan.
+*
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation, either version 3 of the License, or
 * (at your option) any later version.
-* 
+*
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 * GNU General Public License for more details.
-* 
+*
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
-* 
-* NOTE: At this early stage, this code does not do very much - it is 
-* heavily under development! 
+*
+* NOTE: At this early stage, this code does not do very much - it is
+* heavily under development!
 */
 
 #include <SPI.h>
 #include <RH_RF69.h>
 
-#include "src/LEDOutput.h"
-#include "src/RunMode.h"
-#include "src/Rotary.h"
-#include "src/WiLEDProto.h"
+#include <WiLEDProto.h>
 
 // Hard-wired pins for Feather M0
 #define RFM69_CS      8
@@ -36,16 +33,16 @@
 #define LED           13
 
 // Singleton instance of the radio driver
-RH_RF69 rf69(RFM69_CS, RFM69_IRQ); 
+RH_RF69 rf69(RFM69_CS, RFM69_IRQ);
 
-void setup() 
+void setup()
 {
   pinMode(LED, OUTPUT);
   Serial1.begin(115200);
 
   Serial1.println(F("Feather M0 RFM69 RX Test!"));
   Serial1.println();
-  
+
   if (!rf69.init())
     Serial1.println("init failed");
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM (for low power module)
@@ -73,27 +70,33 @@ void loop()
   if (rf69.available())
   {
     digitalWrite(LED, HIGH);
-    // Should be a message for us now   
+    // Should be a message for us now
     uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
     if (rf69.recv(buf, &len))
     {
-      Serial1.print("got request: ");
-      Serial1.println((char*)buf);
+      Serial1.print("HEX: ");
+      for(int idx=0; idx<20; idx++){
+        Serial1.print(buf[idx], HEX);
+        Serial1.print(" ");
+      }
+      Serial1.println(". ");
+
       Serial1.print("RSSI: ");
       Serial1.println(rf69.lastRssi(), DEC);
-      
+
       message = "Received";
 
       uint8_t buf2[RH_RF69_MAX_MESSAGE_LEN];
-    
+
       message.toCharArray((char *)buf2, message.length());
-      
+
       // Send a reply
       rf69.waitCAD();
       rf69.send(buf2, message.length());
       rf69.waitPacketSent();
       Serial1.println("Sent a reply");
+      Serial1.println();
     }
     else
     {
@@ -102,4 +105,3 @@ void loop()
     digitalWrite(LED, LOW);
   }
 }
-
