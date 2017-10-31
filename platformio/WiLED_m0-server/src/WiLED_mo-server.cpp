@@ -25,6 +25,7 @@
 #include <RH_RF69.h>
 
 #include <WiLEDProto.h>
+#include <FlashStorage.h>
 
 // Hard-wired pins for Feather M0
 #define RFM69_CS      8
@@ -34,6 +35,35 @@
 
 // Singleton instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_IRQ);
+
+// Define a struct for storing to flash
+typedef struct {
+  uint8_t data[4096];
+} flash_array;
+
+// Reserve a portion of flash memory to store an "int" variable
+// and call it "my_flash_store".
+FlashStorage(storage, flash_array);
+// Declare an instance of the flash_array struct, called flash_temp
+flash_array flash_temp;
+
+// Create function to pass to WiLP class for reading EEPROM storage
+uint8_t EEPROMreader(uint16_t inAddress){
+  flash_temp = storage.read();
+  return flash_temp.data[inAddress];
+}
+// Create function to pass to WiLP class for writing to EEPROM storage
+void EEPROMwriter(uint16_t inAddress, uint8_t inValue){
+  flash_temp.data[inAddress] = inValue;
+}
+// Create function to pass to WiLP class for committing EEPROM storage
+void EEPROMcommitter(){
+  storage.write(flash_temp);
+}
+
+
+WiLEDProto handler(0x0001, &EEPROMreader, &EEPROMwriter, &EEPROMcommitter);
+
 
 void setup()
 {
@@ -61,9 +91,12 @@ void setup()
                   };
   rf69.setEncryptionKey(key);
   rf69.setCADTimeout(2);
+
+  Serial1.println("About to init flash storage");
+  handler.initStorage();
+  Serial1.println("Init complete");
 }
 
-String message = "";
 
 void loop()
 {
@@ -82,19 +115,51 @@ void loop()
       }
       Serial1.println(". ");
 
-      Serial1.print("RSSI: ");
-      Serial1.println(rf69.lastRssi(), DEC);
+      uint8_t status_code = handler.processMessage(buf);
+      int16_t msg_check_code = -1;
 
-      message = "Received";
+      if(status_code == WiLP_RETURN_SUCCESS){
+        msg_check_code = handler.getLastReceivedMessageCounterValidation();
+      }
 
-      uint8_t buf2[RH_RF69_MAX_MESSAGE_LEN];
+      Serial1.print("Message analysis. Return code: ");
+      Serial1.println(status_code, DEC);
+      Serial1.print("  Source device: ");
+      Serial1.println(handler.getLastReceivedSource(), HEX);
+      Serial1.print("  Destination device: ");
+      Serial1.println(handler.getLastReceivedDestination(), HEX);
+      Serial1.print("  Message type: ");
+      Serial1.println(handler.getLastReceivedType(), HEX);
+      Serial1.print("  Reset counter: ");
+      Serial1.println(handler.getLastReceivedResetCounter(), DEC);
+      Serial1.print("  Message counter: ");
+      Serial1.print(handler.getLastReceivedMessageCounter(), DEC);
+      if(msg_check_code == WiLP_RETURN_SUCCESS){
+        Serial1.println(" (VALID)");
+      } else if(msg_check_code == WiLP_RETURN_ADDED_ADDRESS){
+        Serial1.println(" (ADDED NEW)");
+      } else if(msg_check_code == WiLP_RETURN_INVALID_RST_CTR){
+        Serial1.println(" (INVALID RST)");
+      } else if(msg_check_code == WiLP_RETURN_INVALID_MSG_CTR){
+        Serial1.println(" (INVALID MSG)");
+      } else {
+        Serial1.println(" (OTHER ERROR)");
+      }
+      //Serial1.print("RSSI: ");
+      //Serial1.println(rf69.lastRssi(), DEC);
+      //Serial1.print("Millis delta with last message: ");
+      //Serial1.println(this_message - last_message);
+      Serial1.println();
 
-      message.toCharArray((char *)buf2, message.length());
-
-      // Send a reply
+      // Send a reply back
+      uint8_t data[MAXIMUM_MESSAGE_LENGTH];
+      status_code = handler.sendMessageBeacon(millis());
+      handler.copyToBuffer(data);
+      delay(2);
       rf69.waitCAD();
-      rf69.send(buf2, message.length());
+      rf69.send(data, MAXIMUM_MESSAGE_LENGTH);
       rf69.waitPacketSent();
+
       Serial1.println("Sent a reply");
       Serial1.println();
     }
