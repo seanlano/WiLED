@@ -41,28 +41,32 @@ typedef struct {
   uint8_t data[4096];
 } flash_array;
 
-// Reserve a portion of flash memory to store an "int" variable
-// and call it "my_flash_store".
+// Initialise FlashStorage class, with enough space for a flash_array struct
 FlashStorage(storage, flash_array);
 // Declare an instance of the flash_array struct, called flash_temp
 flash_array flash_temp;
 
-// Create function to pass to WiLP class for reading EEPROM storage
-uint8_t EEPROMreader(uint16_t inAddress){
+// Create function to pass to WiLP class for reading flash storage
+uint8_t FlashReader(uint16_t inAddress){
+  // Update the in-memory copy, flash_temp, with what is stored in flash memory
+  // TODO: Optimise this so read() is not called if flash_temp is already in memory
   flash_temp = storage.read();
+  // Return the requested value to the callback
   return flash_temp.data[inAddress];
 }
-// Create function to pass to WiLP class for writing to EEPROM storage
-void EEPROMwriter(uint16_t inAddress, uint8_t inValue){
+// Create function to pass to WiLP class for writing to flash storage
+void FlashWriter(uint16_t inAddress, uint8_t inValue){
+  // Update the in-memory copy, flash_temp, with the given value
   flash_temp.data[inAddress] = inValue;
 }
-// Create function to pass to WiLP class for committing EEPROM storage
-void EEPROMcommitter(){
+// Create function to pass to WiLP class for committing flash storage
+void FlashCommitter(){
+  // Actually write the in-memory copy to the flash storage
   storage.write(flash_temp);
 }
 
 
-WiLEDProto handler(0x0001, &EEPROMreader, &EEPROMwriter, &EEPROMcommitter);
+WiLEDProto handler(0x0001, &FlashReader, &FlashWriter, &FlashCommitter);
 
 
 void setup()
