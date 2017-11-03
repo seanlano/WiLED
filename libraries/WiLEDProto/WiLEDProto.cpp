@@ -22,7 +22,7 @@
 #include "WiLEDProto.h"
 
 /************ Public methods *****************************/
-
+/*
 // Initialise the WiLEDProto class with its address
 WiLEDProto::WiLEDProto(
   uint16_t inAddress,
@@ -189,7 +189,7 @@ uint8_t WiLEDProto::getLastReceivedMessageCounterValidation(){
 }
 
 /************ Private methods ***************************/
-
+/*
 // Set the "type" byte in the output buffer
 void WiLEDProto::__setTypeByte(uint8_t inType){
   __outgoing_message_buffer[9] = inType;
@@ -211,10 +211,10 @@ void WiLEDProto::__setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValu
 
 
 uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t inStorageOffset, uint16_t inLength){
-  /*Serial.println("Reading to storage: ");
-  Serial.println((int)(void*)outArray, HEX);
-  Serial.println(inStorageOffset);
-  Serial.println(inLength);*/
+  //Serial.println("Reading to storage: ");
+  //Serial.println((int)(void*)outArray, HEX);
+  //Serial.println(inStorageOffset);
+  //Serial.println(inLength);
   // Make a 1-byte pointer to the array of 2-byte values
   uint8_t* p = (uint8_t*)(void*)outArray;
   // First, check callback has been set
@@ -232,11 +232,11 @@ uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t in
 
 
 uint8_t WiLEDProto::__addToStorage_uint16t(uint16_t* inArray, uint16_t inStorageOffset, uint16_t inLength){
-  /*Serial.println("Adding to storage: ");
-  Serial.println((int)(void*)inArray, HEX);
-  Serial.println(*inArray);
-  Serial.println(inStorageOffset);
-  Serial.println(inLength);*/
+  //Serial.println("Adding to storage: ");
+  //Serial.println((int)(void*)inArray, HEX);
+  //Serial.println(*inArray);
+  //Serial.println(inStorageOffset);
+  //Serial.println(inLength);
   // Make a 1-byte pointer to the array of 2-byte values
   uint8_t* p = (uint8_t*)(void*)inArray;
   // First, check callback has been set
@@ -303,4 +303,40 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
   }
   // We should never get here, but just in case
   return WiLP_RETURN_OTHER_ERROR;
+}
+*/
+
+
+// Returns n! (the factorial of n).  For negative n, n! is defined to be 1.
+int Factorial(int n) {
+  int result = 1;
+  for (int i = 1; i <= n; i++) {
+    result *= i;
+  }
+
+  return result;
+}
+
+// Returns true iff n is a prime number.
+bool IsPrime(int n) {
+  // Trivial case 1: small numbers
+  if (n <= 1) return false;
+
+  // Trivial case 2: even numbers
+  if (n % 2 == 0) return n == 2;
+
+  // Now, we have that n is odd and n >= 3.
+
+  // Try to divide n by every odd number i, starting from 3
+  for (int i = 3; ; i += 2) {
+    // We only have to try i up to the squre root of n
+    if (i > n/i) break;
+
+    // Now, we have i <= n/i < n.
+    // If n is divisible by i, n is not prime.
+    if (n % i == 0) return false;
+  }
+
+  // n has no integer factor in the range (1, n), and thus is prime.
+  return true;
 }

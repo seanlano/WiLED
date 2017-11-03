@@ -14,10 +14,10 @@
 
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
-GTEST_DIR = ..
+GTEST_DIR = ../googletest
 
 # Where to find user code.
-USER_DIR = ../../testcases
+USER_DIR = ../testcases
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -29,7 +29,7 @@ CXXFLAGS += -g -Wall -Wextra -pthread
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = sample1_unittest
+TESTS = WiLEDProto_unittest
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -67,16 +67,15 @@ gtest.a : gtest-all.o
 gtest_main.a : gtest-all.o gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
-# Builds a sample test.  A test should link with either gtest.a or
-# gtest_main.a, depending on whether it defines its own main()
-# function.
+# Builds the tests. New tests need to have make commands added here. 
 
-sample1.o : $(USER_DIR)/sample1.cc $(USER_DIR)/sample1.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/sample1.cc
+WiLEDProto.o : $(USER_DIR)/lib/WiLEDProto/WiLEDProto.cpp \
+							 $(USER_DIR)/lib/WiLEDProto/WiLEDProto.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/WiLEDProto/WiLEDProto.cpp
 
-sample1_unittest.o : $(USER_DIR)/sample1_unittest.cc \
-                     $(USER_DIR)/sample1.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/sample1_unittest.cc
+WiLEDProto_unittest.o : $(USER_DIR)/WiLEDProto_unittest.cpp \
+                     		$(USER_DIR)/lib/WiLEDProto/WiLEDProto.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/WiLEDProto_unittest.cpp
 
-sample1_unittest : sample1.o sample1_unittest.o gtest_main.a
+WiLEDProto_unittest : WiLEDProto.o WiLEDProto_unittest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
