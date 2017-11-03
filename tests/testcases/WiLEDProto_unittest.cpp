@@ -1,153 +1,80 @@
-// Copyright 2005, Google Inc.
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/*
+* WiLEDProto unit test program
+* Part of the "WiLED" project, https://github.com/seanlano/WiLED
+* A C++ class for creating and processing messages using the WiLED
+* Protocol.
+* Copyright (C) 2017 Sean Lanigan.
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
-// A sample program demonstrating using Google C++ testing framework.
-//
-// Author: wan@google.com (Zhanyong Wan)
-
-
-// This sample shows how to write a simple unit test for a function,
-// using Google C++ testing framework.
-//
-// Writing a unit test using Google C++ testing framework is easy as 1-2-3:
-
-
-// Step 1. Include necessary header files such that the stuff your
-// test logic needs is declared.
-//
-// Don't forget gtest.h, which declares the testing framework.
-
-#include <limits.h>
 #include "lib/WiLEDProto/WiLEDProto.h"
 #include "gtest/gtest.h"
 
+namespace {
 
-// Step 2. Use the TEST macro to define your tests.
-//
-// TEST has two parameters: the test case name and the test name.
-// After using the macro, you should define your test logic between a
-// pair of braces.  You can use a bunch of macros to indicate the
-// success or failure of a test.  EXPECT_TRUE and EXPECT_EQ are
-// examples of such macros.  For a complete list, see gtest.h.
-//
-// <TechnicalDetails>
-//
-// In Google Test, tests are grouped into test cases.  This is how we
-// keep test code organized.  You should put logically related tests
-// into the same test case.
-//
-// The test case name and the test name should both be valid C++
-// identifiers.  And you should not use underscore (_) in the names.
-//
-// Google Test guarantees that each test you define is run exactly
-// once, but it makes no guarantee on the order the tests are
-// executed.  Therefore, you should write your tests in such a way
-// that their results don't depend on their order.
-//
-// </TechnicalDetails>
-
-
-// Tests Factorial().
-
-// Tests factorial of negative numbers.
-TEST(FactorialTest, Negative) {
-  // This test is named "Negative", and belongs to the "FactorialTest"
-  // test case.
-  EXPECT_EQ(1, Factorial(-5));
-  EXPECT_EQ(1, Factorial(-1));
-  EXPECT_GT(Factorial(-10), 0);
-
-  // <TechnicalDetails>
-  //
-  // EXPECT_EQ(expected, actual) is the same as
-  //
-  //   EXPECT_TRUE((expected) == (actual))
-  //
-  // except that it will print both the expected value and the actual
-  // value when the assertion fails.  This is very helpful for
-  // debugging.  Therefore in this case EXPECT_EQ is preferred.
-  //
-  // On the other hand, EXPECT_TRUE accepts any Boolean expression,
-  // and is thus more general.
-  //
-  // </TechnicalDetails>
+// Blank "storage read" function to pass to the WiLP initialiser
+uint8_t BlankReader(uint16_t inAddress){
+  uint16_t a = inAddress; // Just to avoid compiler warnings
+  a++; // Just to avoid compiler warnings
+  return 0;
+}
+// Blank "storage write" function to pass to the WiLP initialiser
+void BlankWriter(uint16_t inAddress, uint8_t inValue){
+  uint16_t a = inAddress; // Just to avoid compiler warnings
+  a++; // Just to avoid compiler warnings
+  uint8_t v = inValue; // Just to avoid compiler warnings
+  v++; // Just to avoid compiler warnings
+}
+// Blank "storage commit" function to pass to the WiLP initialiser
+void BlankCommitter(){
+  uint8_t a = 0; // Just to avoid compiler warnings
+  a++; // Just to avoid compiler warnings
 }
 
-// Tests factorial of 0.
-TEST(FactorialTest, Zero) {
-  EXPECT_EQ(1, Factorial(0));
+// Test fixture to check WiLEDProto.processMessage returns correct values
+class ProcessMessageTest : public testing::Test {
+  protected:
+    // Class instances within a class need to be initialised in the top-level
+    // constructor - not in the declaration (hence this weird syntax)
+    ProcessMessageTest() :
+      p1(0x1000, &BlankReader, &BlankWriter, &BlankCommitter),
+      p2(0x2000, &BlankReader, &BlankWriter, &BlankCommitter),
+      p3(0x3000, &BlankReader, &BlankWriter, &BlankCommitter) {}
+
+    // Declare some WiLP class hanlders to test
+    WiLEDProto p1;
+    WiLEDProto p2;
+    WiLEDProto p3;
+
+    // Set up the test fixture
+    virtual void SetUp() {
+      p1.initStorage();
+      p2.initStorage();
+      p3.initStorage();
+    }
+
+    //virtual void TearDown() {}
+};
+
+// Check the class is empty after being initialised
+TEST_F(ProcessMessageTest, IsEmptyInitially) {
+  EXPECT_EQ(0, p1.getLastReceivedResetCounter());
+  EXPECT_EQ(0, p1.getLastReceivedMessageCounter());
+  EXPECT_EQ(0, p1.getLastReceivedSource());
+  EXPECT_EQ(0, p1.getLastReceivedDestination());
+  EXPECT_EQ(0, p1.getLastReceivedType());
 }
 
-// Tests factorial of positive numbers.
-TEST(FactorialTest, Positive) {
-  EXPECT_EQ(1, Factorial(1));
-  EXPECT_EQ(2, Factorial(2));
-  EXPECT_EQ(6, Factorial(3));
-  EXPECT_EQ(40320, Factorial(8));
-}
-
-
-// Tests IsPrime()
-
-// Tests negative input.
-TEST(IsPrimeTest, Negative) {
-  // This test belongs to the IsPrimeTest test case.
-
-  EXPECT_FALSE(IsPrime(-1));
-  EXPECT_FALSE(IsPrime(-2));
-  EXPECT_FALSE(IsPrime(INT_MIN));
-}
-
-// Tests some trivial cases.
-TEST(IsPrimeTest, Trivial) {
-  EXPECT_FALSE(IsPrime(0));
-  EXPECT_FALSE(IsPrime(1));
-  EXPECT_TRUE(IsPrime(2));
-  EXPECT_TRUE(IsPrime(3));
-}
-
-// Tests positive input.
-TEST(IsPrimeTest, Positive) {
-  EXPECT_FALSE(IsPrime(4));
-  EXPECT_TRUE(IsPrime(5));
-  EXPECT_FALSE(IsPrime(6));
-  EXPECT_TRUE(IsPrime(23));
-}
-
-// Step 3. Call RUN_ALL_TESTS() in main().
-//
-// We do this by linking in src/gtest_main.cc file, which consists of
-// a main() function which calls RUN_ALL_TESTS() for us.
-//
-// This runs all the tests you've defined, prints the result, and
-// returns 0 if successful, or 1 otherwise.
-//
-// Did you notice that we didn't register the tests?  The
-// RUN_ALL_TESTS() macro magically knows about all the tests we
-// defined.  Isn't this convenient?
+} // end namespace
