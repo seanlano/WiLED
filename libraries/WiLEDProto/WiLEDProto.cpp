@@ -22,7 +22,7 @@
 #include "WiLEDProto.h"
 
 /************ Public methods *****************************/
-/*
+
 // Initialise the WiLEDProto class with its address
 WiLEDProto::WiLEDProto(
   uint16_t inAddress,
@@ -50,7 +50,7 @@ WiLEDProto::WiLEDProto(
 
 void WiLEDProto::initStorage(){
   // Read the addresses and reset counter arrays from storage
-  if(__storage_commit_callback > 0 && __storage_write_callback > 0){
+  if(__storage_commit_callback != NULL && __storage_write_callback != NULL){
     // TODO: Check the return value of these
     __restoreFromStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
     __restoreFromStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
@@ -61,17 +61,19 @@ void WiLEDProto::initStorage(){
     __storage_commit_callback();
 
     // Arduino-specific debug
-    Serial.print("Loaded addresses: ");
-    Serial.println(__count_addresses);
-    Serial.print("Addresses: ");
-    for(uint16_t idx=0; idx < __count_addresses; idx++){
-      Serial.print(__address_array[idx], HEX);
-      Serial.print(", ");
-    }
-    Serial.println();
-    Serial.print("This device's reset counter: ");
-    Serial.println(__self_reset_counter);
-    Serial.println();
+    #ifdef ARDUINO_DEBUG
+      Serial.print("Loaded addresses: ");
+      Serial.println(__count_addresses);
+      Serial.print("Addresses: ");
+      for(uint16_t idx=0; idx < __count_addresses; idx++){
+        Serial.print(__address_array[idx], HEX);
+        Serial.print(", ");
+      }
+      Serial.println();
+      Serial.print("This device's reset counter: ");
+      Serial.println(__self_reset_counter);
+      Serial.println();
+    #endif
   }
 }
 
@@ -189,7 +191,7 @@ uint8_t WiLEDProto::getLastReceivedMessageCounterValidation(){
 }
 
 /************ Private methods ***************************/
-/*
+
 // Set the "type" byte in the output buffer
 void WiLEDProto::__setTypeByte(uint8_t inType){
   __outgoing_message_buffer[9] = inType;
@@ -211,14 +213,16 @@ void WiLEDProto::__setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValu
 
 
 uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t inStorageOffset, uint16_t inLength){
-  //Serial.println("Reading to storage: ");
-  //Serial.println((int)(void*)outArray, HEX);
-  //Serial.println(inStorageOffset);
-  //Serial.println(inLength);
+  #ifdef ARDUINO_DEBUG
+    //Serial.println("Reading to storage: ");
+    //Serial.println((int)(void*)outArray, HEX);
+    //Serial.println(inStorageOffset);
+    //Serial.println(inLength);
+  #endif
   // Make a 1-byte pointer to the array of 2-byte values
   uint8_t* p = (uint8_t*)(void*)outArray;
   // First, check callback has been set
-  if(__storage_read_callback > 0){
+  if(__storage_read_callback != NULL){
     for (uint16_t idx = 0; idx < inLength; idx++){
       // Read from the storage location into the array
       p[idx] = (*__storage_read_callback)(idx + inStorageOffset);
@@ -232,15 +236,17 @@ uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t in
 
 
 uint8_t WiLEDProto::__addToStorage_uint16t(uint16_t* inArray, uint16_t inStorageOffset, uint16_t inLength){
-  //Serial.println("Adding to storage: ");
-  //Serial.println((int)(void*)inArray, HEX);
-  //Serial.println(*inArray);
-  //Serial.println(inStorageOffset);
-  //Serial.println(inLength);
+  #ifdef ARDUINO_DEBUG
+    //Serial.println("Adding to storage: ");
+    //Serial.println((int)(void*)inArray, HEX);
+    //Serial.println(*inArray);
+    //Serial.println(inStorageOffset);
+    //Serial.println(inLength);
+  #endif
   // Make a 1-byte pointer to the array of 2-byte values
   uint8_t* p = (uint8_t*)(void*)inArray;
   // First, check callback has been set
-  if(__storage_write_callback > 0){
+  if(__storage_write_callback != NULL){
     for (uint16_t idx = 0; idx < inLength; idx++){
       // Write from the array into the storage location
       (*__storage_write_callback)(idx + inStorageOffset, p[idx]);
@@ -303,40 +309,4 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
   }
   // We should never get here, but just in case
   return WiLP_RETURN_OTHER_ERROR;
-}
-*/
-
-
-// Returns n! (the factorial of n).  For negative n, n! is defined to be 1.
-int Factorial(int n) {
-  int result = 1;
-  for (int i = 1; i <= n; i++) {
-    result *= i;
-  }
-
-  return result;
-}
-
-// Returns true iff n is a prime number.
-bool IsPrime(int n) {
-  // Trivial case 1: small numbers
-  if (n <= 1) return false;
-
-  // Trivial case 2: even numbers
-  if (n % 2 == 0) return n == 2;
-
-  // Now, we have that n is odd and n >= 3.
-
-  // Try to divide n by every odd number i, starting from 3
-  for (int i = 3; ; i += 2) {
-    // We only have to try i up to the squre root of n
-    if (i > n/i) break;
-
-    // Now, we have i <= n/i < n.
-    // If n is divisible by i, n is not prime.
-    if (n % i == 0) return false;
-  }
-
-  // n has no integer factor in the range (1, n), and thus is prime.
-  return true;
 }

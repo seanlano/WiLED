@@ -23,8 +23,14 @@
 #ifndef WILEDPROTO_H
 #define WILEDPROTO_H
 
-//#include <Arduino.h>
-#include <stdint.h>
+#ifdef GTEST_BUILD
+  #include <stdlib.h>
+  #include <stdint.h>
+  #include <stdio.h>
+  #include <string.h>
+#else
+  #include <Arduino.h>
+#endif
 
 #define MAXIMUM_STORED_ADDRESSES 100
 #define MAXIMUM_MESSAGE_LENGTH 25
@@ -102,9 +108,9 @@ class WiLEDProto {
     uint8_t __checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inResetCounter, uint16_t inMessageCounter);
 
     // Store callback functions for storage read and write (usually EEPROM)
-    void (*__storage_write_callback)(uint16_t, uint8_t) = 0;
-    uint8_t (*__storage_read_callback)(uint16_t) = 0;
-    void (*__storage_commit_callback)(void) = 0;
+    void (*__storage_write_callback)(uint16_t, uint8_t) = NULL;
+    uint8_t (*__storage_read_callback)(uint16_t) = NULL;
+    void (*__storage_commit_callback)(void) = NULL;
 
     // Store a count of how many unique addresses we have seen
     uint16_t __count_addresses = 0;
@@ -117,12 +123,5 @@ class WiLEDProto {
     uint16_t __reset_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
     uint16_t __message_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
 };
-
-// Add googletest sample here just to check that it can compile properly
-// Returns n! (the factorial of n).  For negative n, n! is defined to be 1.
-int Factorial(int n);
-
-// Returns true iff n is a prime number.
-bool IsPrime(int n);
 
 #endif
