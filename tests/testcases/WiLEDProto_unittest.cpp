@@ -70,12 +70,12 @@ class ProcessMessageTest : public testing::Test {
 
 /// Test that the class is empty after being initialised
 TEST_F(ProcessMessageTest, IsEmptyInitially) {
-  EXPECT_EQ(0, p1.getLastReceivedResetCounter());
-  EXPECT_EQ(0, p1.getLastReceivedMessageCounter());
-  EXPECT_EQ(0, p1.getLastReceivedSource());
-  EXPECT_EQ(0, p1.getLastReceivedDestination());
-  EXPECT_EQ(0, p1.getLastReceivedType());
-  EXPECT_EQ(0, p1.getLastReceivedMessageCounterValidation());
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 0);
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 0);
+  EXPECT_EQ(p1.getLastReceivedSource(), 0);
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0);
+  EXPECT_EQ(p1.getLastReceivedType(), 0);
+  EXPECT_EQ(p1.getLastReceivedMessageCounterValidation(), 0);
 }
 
 /// Test that the class correctly identifies an invalid message
@@ -93,24 +93,24 @@ TEST_F(ProcessMessageTest, IdentifyInvalidMessage) {
   // Check the message is processed and flagged as invalid
   ASSERT_EQ(WiLP_RETURN_INVALID_BUFFER, p1.processMessage(invalid_message));
   // Check the "getLast" calls are also set to zero after invalid message
-  EXPECT_EQ(0, p1.getLastReceivedResetCounter());
-  EXPECT_EQ(0, p1.getLastReceivedMessageCounter());
-  EXPECT_EQ(0, p1.getLastReceivedSource());
-  EXPECT_EQ(0, p1.getLastReceivedDestination());
-  EXPECT_EQ(0, p1.getLastReceivedType());
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 0);
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 0);
+  EXPECT_EQ(p1.getLastReceivedSource(), 0);
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0);
+  EXPECT_EQ(p1.getLastReceivedType(), 0);
 
   // Test another magic number
   invalid_message[0] = 0xFF;
   ASSERT_EQ(WiLP_RETURN_INVALID_BUFFER, p2.processMessage(invalid_message));
   // Check the "getLast" calls are also set to zero after invalid message
-  EXPECT_EQ(0, p2.getLastReceivedResetCounter());
-  EXPECT_EQ(0, p2.getLastReceivedMessageCounter());
-  EXPECT_EQ(0, p2.getLastReceivedSource());
-  EXPECT_EQ(0, p2.getLastReceivedDestination());
-  EXPECT_EQ(0, p2.getLastReceivedType());
+  EXPECT_EQ(p2.getLastReceivedResetCounter(), 0);
+  EXPECT_EQ(p2.getLastReceivedMessageCounter(), 0);
+  EXPECT_EQ(p2.getLastReceivedSource(), 0);
+  EXPECT_EQ(p2.getLastReceivedDestination(), 0);
+  EXPECT_EQ(p2.getLastReceivedType(), 0);
 }
 
-// Check the class correctly sets its reset counter
+/// Check the class correctly sets its reset counter
 TEST_F(ProcessMessageTest, CorrectFirstResetCounter) {
   // Create a buffer to store the output message
   uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
@@ -125,10 +125,10 @@ TEST_F(ProcessMessageTest, CorrectFirstResetCounter) {
   p1_reset_counter = (p1_buffer[5] << 8);
   p1_reset_counter += p1_buffer[6];
   // Reset counter should be 1 (since we just initialised p1)
-  ASSERT_EQ(1, p1_reset_counter);
+  ASSERT_EQ(p1_reset_counter, 1);
 }
 
-// Check the class correctly sets its message counter
+/// Check the class correctly sets its message counter
 TEST_F(ProcessMessageTest, CorrectFirstMessageCounter) {
   // Create a buffer to store the output message
   uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
@@ -143,7 +143,7 @@ TEST_F(ProcessMessageTest, CorrectFirstMessageCounter) {
   p1_message_counter = (p1_buffer[7] << 8);
   p1_message_counter += p1_buffer[8];
   // Reset counter should be 1 (since we just initialised p1)
-  ASSERT_EQ(1, p1_message_counter);
+  ASSERT_EQ(p1_message_counter, 1);
 
   // Pull out the reset counter from the buffer
   uint16_t p1_reset_counter = 0;
@@ -151,10 +151,10 @@ TEST_F(ProcessMessageTest, CorrectFirstMessageCounter) {
   p1_reset_counter = (p1_buffer[5] << 8);
   p1_reset_counter += p1_buffer[6];
   // Reset counter should be 1 (since we just initialised p1)
-  ASSERT_EQ(1, p1_reset_counter);
+  ASSERT_EQ(p1_reset_counter, 1);
 }
 
-// Check the class correctly sets its message counter
+/// Check the class correctly sets its message counter
 TEST_F(ProcessMessageTest, Correct254MessageCounter) {
   const uint16_t number_runs = 254;
   // Create a buffer to store the output message
@@ -174,7 +174,7 @@ TEST_F(ProcessMessageTest, Correct254MessageCounter) {
   p1_message_counter = (p1_buffer[7] << 8);
   p1_message_counter += p1_buffer[8];
   // Do the actual comparison
-  ASSERT_EQ(number_runs, p1_message_counter);
+  ASSERT_EQ(p1_message_counter, number_runs);
 
   // Pull out the reset counter from the buffer
   uint16_t p1_reset_counter = 0;
@@ -182,10 +182,10 @@ TEST_F(ProcessMessageTest, Correct254MessageCounter) {
   p1_reset_counter = (p1_buffer[5] << 8);
   p1_reset_counter += p1_buffer[6];
   // Reset counter should be 1 (since we just initialised p1)
-  ASSERT_EQ(1, p1_reset_counter);
+  ASSERT_EQ(p1_reset_counter, 1);
 }
 
-// Check the class correctly sets its message counter
+/// Check the class correctly sets its message counter
 TEST_F(ProcessMessageTest, Correct1000MessageCounter) {
   const uint16_t number_runs = 1000;
   // Create a buffer to store the output message
@@ -204,7 +204,7 @@ TEST_F(ProcessMessageTest, Correct1000MessageCounter) {
   p1_message_counter = (p1_buffer[7] << 8);
   p1_message_counter += p1_buffer[8];
   // Do the actual comparison
-  ASSERT_EQ(number_runs, p1_message_counter);
+  ASSERT_EQ(p1_message_counter, number_runs);
 
   // Pull out the reset counter from the buffer
   uint16_t p1_reset_counter = 0;
@@ -212,10 +212,10 @@ TEST_F(ProcessMessageTest, Correct1000MessageCounter) {
   p1_reset_counter = (p1_buffer[5] << 8);
   p1_reset_counter += p1_buffer[6];
   // Reset counter should be 1 (since we just initialised p1)
-  ASSERT_EQ(1, p1_reset_counter);
+  ASSERT_EQ(p1_reset_counter, 1);
 }
 
-// Check the class correctly sets its message counter
+/// Check the class correctly sets its message counter
 TEST_F(ProcessMessageTest, Correct65535MessageCounter) {
   const uint16_t number_runs = 65535;
   // Create a buffer to store the output message
@@ -234,7 +234,7 @@ TEST_F(ProcessMessageTest, Correct65535MessageCounter) {
   p1_message_counter = (p1_buffer[7] << 8);
   p1_message_counter += p1_buffer[8];
   // Do the actual comparison
-  ASSERT_EQ(number_runs, p1_message_counter);
+  ASSERT_EQ(p1_message_counter, number_runs);
 
   // Pull out the reset counter from the buffer
   uint16_t p1_reset_counter = 0;
@@ -242,10 +242,10 @@ TEST_F(ProcessMessageTest, Correct65535MessageCounter) {
   p1_reset_counter = (p1_buffer[5] << 8);
   p1_reset_counter += p1_buffer[6];
   // Reset counter should be 1 (since we just initialised p1)
-  ASSERT_EQ(1, p1_reset_counter);
+  ASSERT_EQ(p1_reset_counter, 1);
 }
 
-// Check the class correctly sets its message counter (after overflow)
+/// Check the class correctly sets its message counter (after overflow)
 TEST_F(ProcessMessageTest, Correct65536MessageCounter) {
   const uint32_t number_runs = 65536;
   // Create a buffer to store the output message
@@ -264,7 +264,7 @@ TEST_F(ProcessMessageTest, Correct65536MessageCounter) {
   p1_message_counter = (p1_buffer[7] << 8);
   p1_message_counter += p1_buffer[8];
   // Do the actual comparison (should have message_counter = 1 after overflow)
-  EXPECT_EQ(1, p1_message_counter);
+  EXPECT_EQ(p1_message_counter, 1);
 
   // Pull out the reset counter from the buffer
   uint16_t p1_reset_counter = 0;
@@ -272,10 +272,10 @@ TEST_F(ProcessMessageTest, Correct65536MessageCounter) {
   p1_reset_counter = (p1_buffer[5] << 8);
   p1_reset_counter += p1_buffer[6];
   // Reset counter should be 2 (since we just overflowed p1)
-  EXPECT_EQ(2, p1_reset_counter);
+  EXPECT_EQ(p1_reset_counter, 2);
 }
 
-// Check the class correctly sets its message counter (after overflow)
+/// Check the class correctly sets its message counter (after overflow)
 TEST_F(ProcessMessageTest, Correct65537MessageCounter) {
   const uint32_t number_runs = 65537;
   // Create a buffer to store the output message
@@ -294,7 +294,7 @@ TEST_F(ProcessMessageTest, Correct65537MessageCounter) {
   p1_message_counter = (p1_buffer[7] << 8);
   p1_message_counter += p1_buffer[8];
   // Do the actual comparison (should have message_counter = 2, 1 run after overflow)
-  EXPECT_EQ(2, p1_message_counter);
+  EXPECT_EQ(p1_message_counter, 2);
 
   // Pull out the reset counter from the buffer
   uint16_t p1_reset_counter = 0;
@@ -302,7 +302,114 @@ TEST_F(ProcessMessageTest, Correct65537MessageCounter) {
   p1_reset_counter = (p1_buffer[5] << 8);
   p1_reset_counter += p1_buffer[6];
   // Reset counter should be 2 (since we overflowed p1)
-  EXPECT_EQ(2, p1_reset_counter);
+  EXPECT_EQ(p1_reset_counter, 2);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN tests for "Beacon" message type, 0x01
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check the class correctly receives a Beacon message
+TEST_F(ProcessMessageTest, CorrectBeaconMessageReceive) {
+  // First, manually create a correct beacon message
+  uint8_t valid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Set magic number to 0xAA (i.e. valid type)
+  valid_message[0] = 0xAA;
+  // Set source address to 0x1001 (big endian)
+  valid_message[1] = 0x10;
+  valid_message[2] = 0x01;
+  // Set destination address to 0xFFFF
+  valid_message[3] = 0xFF;
+  valid_message[4] = 0xFF;
+  // Set reset counter to 1
+  valid_message[6] = 0x01;
+  // Set message counter to 1
+  valid_message[8] = 0x01;
+  // Set message type flag to WiLP_Beacon
+  const uint8_t beacon_type = WiLP_Beacon;
+  valid_message[9] = beacon_type;
+  // Set the 4 payload bytes to a big-endian uptime number
+  //const uint32_t uptime = 0x499602D2; // Decimal = 1234567890
+  valid_message[10] = 0x49;
+  valid_message[11] = 0x96;
+  valid_message[12] = 0x02;
+  valid_message[13] = 0xD2;
+  // TODO: Set checksum bits
+
+  // Check the message is received properly
+  ASSERT_EQ(p1.processMessage(valid_message), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedSource(), 0x1001);
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF);
+  EXPECT_EQ(p1.getLastReceivedType(), beacon_type);
+  // TODO: Check uptime is received properly (need to implement first)
+}
+
+/// Check the class correctly sends a Beacon message
+TEST_F(ProcessMessageTest, CorrectBeaconMessageSend) {
+  // First, manually create a correct beacon message in an array
+  uint8_t valid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Set magic number to 0xAA (i.e. valid type)
+  valid_message[0] = 0xAA;
+  // Set source address to 0x1000 (big endian) for instance p1
+  valid_message[1] = 0x10;
+  valid_message[2] = 0x00;
+  // Set destination address to 0xFFFF
+  valid_message[3] = 0xFF;
+  valid_message[4] = 0xFF;
+  // Set reset counter to 1 (this shold be the first message being sent)
+  valid_message[6] = 0x01;
+  // Set message counter to 1 (this shold be the first message being sent)
+  valid_message[8] = 0x01;
+  // Set message type flag to WiLP_Beacon
+  const uint8_t beacon_type = WiLP_Beacon;
+  valid_message[9] = beacon_type;
+  // Set the 4 payload bytes to a big-endian uptime number
+  const uint32_t uptime = 0x499602D2; // Decimal = 1234567890
+  valid_message[10] = 0x49;
+  valid_message[11] = 0x96;
+  valid_message[12] = 0x02;
+  valid_message[13] = 0xD2;
+  // TODO: Set checksum bits
+
+  // Create buffer for sent message
+  uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // "Send" message and copy to buffer
+  p1.sendMessageBeacon(uptime);
+  p1.copyToBuffer(p1_buffer);
+  // Check the sent buffer is what we expect it to be
+  for(uint8_t idx = 0; idx<MAXIMUM_MESSAGE_LENGTH; idx++)
+  {
+    EXPECT_EQ(p1_buffer[idx], valid_message[idx]);
+  }
+}
+
+/// Check the class correctly sends and then another can receive a Beacon message
+TEST_F(ProcessMessageTest, CorrectBeaconMessageSendReceive) {
+  // First, create a message in p1 with uptime
+  const uint32_t uptime = 0x499602D2; // Decimal = 1234567890
+  // Create buffer for sent message
+  uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // "Send" message and copy to buffer
+  p1.sendMessageBeacon(uptime);
+  p1.copyToBuffer(p1_buffer);
+  // Store the Beacon message type number
+  const uint8_t beacon_type = WiLP_Beacon;
+
+  // Next, check the message from p1 is received properly by p2
+  ASSERT_EQ(p2.processMessage(p1_buffer), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p2.getLastReceivedResetCounter(), 1); //p1 was just initialised
+  EXPECT_EQ(p2.getLastReceivedMessageCounter(), 1); //p1 was just initialised
+  EXPECT_EQ(p2.getLastReceivedSource(), 0x1000); // p1 is 0x1000 address
+  EXPECT_EQ(p2.getLastReceivedDestination(), 0xFFFF); // Beacon is a broadcast
+  EXPECT_EQ(p2.getLastReceivedType(), beacon_type);
+  // TODO: Check uptime is received properly (need to implement first)
+}
+////////////////////////////////////////////////////////////////////////////////
+// END tests for "Beacon" message type
+////////////////////////////////////////////////////////////////////////////////
 
 } // end namespace
