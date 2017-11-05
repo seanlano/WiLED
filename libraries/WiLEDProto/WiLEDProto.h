@@ -42,9 +42,10 @@
 #define WiLP_Device_Status 0x02
 
 #define WiLP_RETURN_SUCCESS 0
+#define WiLP_RETURN_ADDED_ADDRESS 100
 #define WiLP_RETURN_INVALID_MSG_CTR 200
 #define WiLP_RETURN_INVALID_RST_CTR 201
-#define WiLP_RETURN_ADDED_ADDRESS 202
+#define WiLP_RETURN_INVALID_CHECKSUM 202
 #define WiLP_RETURN_AT_MAX_ADDRESSES 203
 #define WiLP_RETURN_INVALID_BUFFER 254
 #define WiLP_RETURN_OTHER_ERROR 255
@@ -99,9 +100,10 @@ class WiLEDProto {
     uint16_t __last_received_message_counter = 0;
     uint8_t __last_received_message_counter_validation = 0;
     uint8_t __last_received_payload_length = 0;
-    uint8_t __last_received_payload[MAXIMUM_PAYLOAD_LENGTH];
+    uint8_t __last_received_payload[MAXIMUM_PAYLOAD_LENGTH] = {0};
 
-    uint8_t __outgoing_message_buffer[MAXIMUM_MESSAGE_LENGTH];
+    uint8_t __outgoing_message_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+    uint8_t __outgoing_message_length = 0;
 
     void __setTypeByte(uint8_t inType);
     void __setDestinationByte(uint16_t inDestination);

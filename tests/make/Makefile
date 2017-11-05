@@ -70,7 +70,7 @@ WiLEDProto_unittest.o : $(USER_DIR)/WiLEDProto_unittest.cpp \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(USER_DIR) \
 	-c $(USER_DIR)/WiLEDProto_unittest.cpp
 
-WiLEDProto_unittest : WiLEDProto.o WiLEDProto_unittest.o gtest_main.a
+WiLEDProto_unittest : WiLEDProto.o WiLEDProto_unittest.o CRC16.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
 

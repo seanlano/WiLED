@@ -100,11 +100,15 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   __last_received_message_counter = (inBuffer[7] << 8);
   __last_received_message_counter += inBuffer[8];
   // Check if we are the destination
-  if((__last_received_destination != __address) and (__last_received_destination != 0xFFFF)){
+  if((__last_received_destination != __address) &&
+     (__last_received_destination != 0xFFFF)){
     return WiLP_RETURN_NOT_THIS_DEST;
   }
 
-  __last_received_message_counter_validation = __checkAndUpdateMessageCounter(__last_received_source, __last_received_reset_counter, __last_received_message_counter);
+  __last_received_message_counter_validation =
+  __checkAndUpdateMessageCounter(__last_received_source,
+                                 __last_received_reset_counter,
+                                 __last_received_message_counter);
 
   // Determine the payload length
   switch(__last_received_type){
@@ -118,6 +122,17 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   // Store the payload bytes in an array
   if(__last_received_payload_length > 0){
     memcpy(__last_received_payload, &inBuffer[10], __last_received_payload_length);
+  }
+
+  // Calculate the CRC16 checksum of the received message
+  uint16_t checksum = CRC16(inBuffer, 0, 10+__last_received_payload_length);
+  // Pull out the checksum in the received message
+  uint16_t received_checksum;
+  received_checksum  = (inBuffer[10+__last_received_payload_length] << 8);
+  received_checksum += inBuffer[10+__last_received_payload_length+1];
+  // Check the calculated checksum matches the received checksum
+  if(checksum != received_checksum){
+    return WiLP_RETURN_INVALID_CHECKSUM;
   }
 
   // If received message does not pass the validation, return with an error code
@@ -141,6 +156,9 @@ uint8_t WiLEDProto::sendMessageBeacon(uint32_t inUptime){
   __setPayloadByte(2, (inUptime >> 8));
   __setPayloadByte(3, (inUptime));
 
+  // Store the message length. 10 bytes header, 4 bytes payload, 2 bytes checksum
+  __outgoing_message_length = 16;
+
   return WiLP_RETURN_SUCCESS;
 }
 
@@ -155,7 +173,9 @@ void WiLEDProto::copyToBuffer(uint8_t * inBuffer){
     __self_message_counter = 0;
     // Increment the reset counter and store it
     __self_reset_counter++;
-    __addToStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
+    __addToStorage_uint16t(&__self_reset_counter,
+                           STORAGE_SELF_RESET_LOCATION,
+                           sizeof(__self_reset_counter));
     __storage_commit_callback();
   }
   __self_message_counter++;
@@ -166,6 +186,13 @@ void WiLEDProto::copyToBuffer(uint8_t * inBuffer){
   __outgoing_message_buffer[5] = (__self_reset_counter >> 8);
   __outgoing_message_buffer[6] = (__self_reset_counter);
 
+  // Calculate and insert CRC16 checksum
+  uint16_t checksum = CRC16(__outgoing_message_buffer,
+                            0,
+                            __outgoing_message_length-2);
+  // Store the checksum in the last 2 bytes of the message
+  __outgoing_message_buffer[__outgoing_message_length-2] = (checksum >> 8);
+  __outgoing_message_buffer[__outgoing_message_length-1] = (checksum);
 
   // Copy internal buffer to provided address
   memcpy(inBuffer, __outgoing_message_buffer, MAXIMUM_MESSAGE_LENGTH);
@@ -174,6 +201,7 @@ void WiLEDProto::copyToBuffer(uint8_t * inBuffer){
   for(uint8_t idx = 3; idx<MAXIMUM_MESSAGE_LENGTH; idx++){
     __outgoing_message_buffer[idx] = 0x00;
   }
+  __outgoing_message_length = 0;
 }
 
 

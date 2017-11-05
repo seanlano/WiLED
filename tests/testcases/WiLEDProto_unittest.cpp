@@ -413,12 +413,14 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageReceive) {
   // Set destination address to 0xFFFF
   valid_message[3] = 0xFF;
   valid_message[4] = 0xFF;
-  // Set reset counter to 1
+  // Set reset counter to 1 (this should be the first message being sent)
+  valid_message[5] = 0x00;
   valid_message[6] = 0x01;
-  // Set message counter to 1
+  // Set message counter to 1 (this should be the first message being sent)
+  valid_message[7] = 0x00;
   valid_message[8] = 0x01;
   // Set message type flag to WiLP_Beacon
-  const uint8_t beacon_type = WiLP_Beacon;
+  const uint8_t beacon_type = 0x01;
   valid_message[9] = beacon_type;
   // Set the 4 payload bytes to a big-endian uptime number
   //const uint32_t uptime = 0x499602D2; // Decimal = 1234567890
@@ -426,12 +428,12 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageReceive) {
   valid_message[11] = 0x96;
   valid_message[12] = 0x02;
   valid_message[13] = 0xD2;
-  // CRC-CCITT (XModem) checksum (big-endian), 0x76F6
-  //valid_message[14] = 0x76;
-  //valid_message[15] = 0xF6;
+  // CRC-CCITT (XModem) checksum (big-endian), 0x64DB
+  valid_message[14] = 0x64;
+  valid_message[15] = 0xDB;
 
   // Check the message is received properly
-  ASSERT_EQ(p1.processMessage(valid_message), WiLP_RETURN_SUCCESS);
+  EXPECT_EQ(p1.processMessage(valid_message), WiLP_RETURN_SUCCESS);
   // Check the "getLast" calls are also valid
   EXPECT_EQ(p1.getLastReceivedResetCounter(), 1);
   EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1);
@@ -453,12 +455,14 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageSend) {
   // Set destination address to 0xFFFF
   valid_message[3] = 0xFF;
   valid_message[4] = 0xFF;
-  // Set reset counter to 1 (this shold be the first message being sent)
+  // Set reset counter to 1 (this should be the first message being sent)
+  valid_message[5] = 0x00;
   valid_message[6] = 0x01;
-  // Set message counter to 1 (this shold be the first message being sent)
+  // Set message counter to 1 (this should be the first message being sent)
+  valid_message[7] = 0x00;
   valid_message[8] = 0x01;
   // Set message type flag to WiLP_Beacon
-  const uint8_t beacon_type = WiLP_Beacon;
+  const uint8_t beacon_type = 0x01;
   valid_message[9] = beacon_type;
   // Set the 4 payload bytes to a big-endian uptime number
   const uint32_t uptime = 0x499602D2; // Decimal = 1234567890
@@ -466,19 +470,36 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageSend) {
   valid_message[11] = 0x96;
   valid_message[12] = 0x02;
   valid_message[13] = 0xD2;
-  // CRC-CCITT (XModem) checksum (big-endian), 0x19B3
-  //valid_message[14] = 0x19;
-  //valid_message[15] = 0xB3;
+  // CRC-CCITT (XModem) checksum (big-endian), 0x67AE
+  valid_message[14] = 0x67;
+  valid_message[15] = 0xAE;
 
   // Create buffer for sent message
   uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
   // "Send" message and copy to buffer
   p1.sendMessageBeacon(uptime);
   p1.copyToBuffer(p1_buffer);
+
+  // Create a string-ified version of the two buffers, to print out if necessary
+  std::stringstream p1_buffer_str, valid_message_str;
+  p1_buffer_str << "p1 buffer is: ";
+  for (uint8_t i = 0; i < MAXIMUM_MESSAGE_LENGTH; i++){
+    p1_buffer_str << std::hex << std::setfill('0') << std::setw(2) <<
+      (unsigned short) p1_buffer[i] << " ";
+  }
+  p1_buffer_str << ". ";
+  valid_message_str << "expected buffer: ";
+  for (uint8_t i = 0; i < MAXIMUM_MESSAGE_LENGTH; i++){
+    valid_message_str << std::hex << std::setfill('0') << std::setw(2) <<
+      (unsigned short) valid_message[i] << " ";
+  }
+
   // Check the sent buffer is what we expect it to be
   for(uint8_t idx = 0; idx<MAXIMUM_MESSAGE_LENGTH; idx++)
   {
-    EXPECT_EQ(p1_buffer[idx], valid_message[idx]);
+    // Do the test, and print the actual and expected buffers if not equal
+    ASSERT_EQ(p1_buffer[idx], valid_message[idx]) <<
+      ::testing::PrintToString(p1_buffer_str.str() + valid_message_str.str());
   }
 }
 
