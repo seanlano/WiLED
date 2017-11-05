@@ -3,7 +3,8 @@
 * Part of the "WiLED" project, https://github.com/seanlano/WiLED
 * A C++ function for generating CRC16 checksums, in the XModem style.
 * Copyright (C) 2017 Sean Lanigan.
-* Originally based on 'Crc16' by 'Vincenzo', released under the MIT license. See:
+* Originally based on 'Crc16' by Vincenzo Mennella, released under the MIT
+* license. See here for the original:
 * https://github.com/vinmenn/Crc16/blob/aed958375acfd6edfcddbfcb3a42a861c77bb697/Crc16.h
 *
 * This program is free software: you can redistribute it and/or modify

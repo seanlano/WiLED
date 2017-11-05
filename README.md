@@ -36,6 +36,8 @@ The Rotary library for Arduino, by Ben Buxton, has been used and the files `Rota
 
 Additionally, the wonderful RadioHead library from Mike McCauley and AirSpayce has been used via an inclusion through PlatformIO. [See here for the homepage](http://www.airspayce.com/mikem/arduino/RadioHead/index.html). It is GPLv2 licensed (not clear if this is GPLv2 _only_ or GPLv2+). 
 
+For CRC16 checksum calculation, a function based on work by Vincenzo Mennella has been created. [See here for the original](https://github.com/vinmenn/Crc16/blob/aed958375acfd6edfcddbfcb3a42a861c77bb697/Crc16.h). His work is [MIT licensed](https://github.com/vinmenn/Crc16/blob/aed958375acfd6edfcddbfcb3a42a861c77bb697/LICENSE), the new version as part of WiLED is licensed under the GPL like the rest of this project. 
+
 For unit tests, the [Google Test framework](https://github.com/google/googletest) is used. Necessary files are directly included in this repository, so that it is easy to compile and run unit tests without needing to separately download the Google Test source. Google Test is licensed under the [New BSD License](https://github.com/google/googletest/blob/master/googletest/LICENSE). 
 
 ## License
