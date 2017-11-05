@@ -142,11 +142,11 @@ void sendMessage()
         Serial.println(" (VALID)");
       } else if(msg_check_code == WiLP_RETURN_ADDED_ADDRESS){
         Serial.println(" (ADDED NEW)");
-      } else if(msg_check_code == WiLP_RETURN_INVALID_RST_CTR){
+      } else if(status_code == WiLP_RETURN_INVALID_RST_CTR){
         Serial.println(" (INVALID RST)");
-      } else if(msg_check_code == WiLP_RETURN_INVALID_MSG_CTR){
+      } else if(status_code == WiLP_RETURN_INVALID_MSG_CTR){
         Serial.println(" (INVALID MSG)");
-      } else if(msg_check_code == WiLP_RETURN_INVALID_CHECKSUM){
+      } else if(status_code == WiLP_RETURN_INVALID_CHECKSUM){
         Serial.println(" (CHECKSUM FAILED)");
       } else {
         Serial.println(" (OTHER ERROR)");

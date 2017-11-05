@@ -142,11 +142,11 @@ void loop()
         Serial1.println(" (VALID)");
       } else if(msg_check_code == WiLP_RETURN_ADDED_ADDRESS){
         Serial1.println(" (ADDED NEW)");
-      } else if(msg_check_code == WiLP_RETURN_INVALID_RST_CTR){
+      } else if(status_code == WiLP_RETURN_INVALID_RST_CTR){
         Serial1.println(" (INVALID RST)");
-      } else if(msg_check_code == WiLP_RETURN_INVALID_MSG_CTR){
+      } else if(status_code == WiLP_RETURN_INVALID_MSG_CTR){
         Serial1.println(" (INVALID MSG)");
-      } else if(msg_check_code == WiLP_RETURN_INVALID_CHECKSUM){
+      } else if(status_code == WiLP_RETURN_INVALID_CHECKSUM){
         Serial1.println(" (CHECKSUM FAILED)");
       } else {
         Serial1.println(" (OTHER ERROR)");
