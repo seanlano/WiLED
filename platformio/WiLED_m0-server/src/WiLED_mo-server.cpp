@@ -146,6 +146,8 @@ void loop()
         Serial1.println(" (INVALID RST)");
       } else if(msg_check_code == WiLP_RETURN_INVALID_MSG_CTR){
         Serial1.println(" (INVALID MSG)");
+      } else if(msg_check_code == WiLP_RETURN_INVALID_CHECKSUM){
+        Serial1.println(" (CHECKSUM FAILED)");
       } else {
         Serial1.println(" (OTHER ERROR)");
       }
