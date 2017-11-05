@@ -82,11 +82,7 @@ void WiLEDProto::initStorage(){
 uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   // Check if first byte is magic number
   if(inBuffer[0] != 0xAA){
-    __last_received_destination = 0;
-    __last_received_source = 0;
-    __last_received_type = 0;
-    __last_received_reset_counter = 0;
-    __last_received_message_counter = 0;
+    __wipeLastReceived();
     return WiLP_RETURN_INVALID_BUFFER;
   }
   // Store the received message destination (left shift)
@@ -124,7 +120,13 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
     memcpy(__last_received_payload, &inBuffer[10], __last_received_payload_length);
   }
 
-  return WiLP_RETURN_SUCCESS;
+  // If received message does not pass the validation, return with an error code
+  if((__last_received_message_counter_validation == WiLP_RETURN_SUCCESS) ||
+     (__last_received_message_counter_validation == WiLP_RETURN_ADDED_ADDRESS)){
+    return WiLP_RETURN_SUCCESS;
+  } else {
+    return __last_received_message_counter_validation;
+  }
 }
 
 
@@ -221,6 +223,15 @@ void WiLEDProto::__setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValu
 }
 
 
+void WiLEDProto::__wipeLastReceived(){
+  __last_received_destination = 0;
+  __last_received_source = 0;
+  __last_received_type = 0;
+  __last_received_reset_counter = 0;
+  __last_received_message_counter = 0;
+}
+
+
 uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t inStorageOffset, uint16_t inLength){
   #ifdef ARDUINO_DEBUG
     //Serial.println("Reading to storage: ");
@@ -274,20 +285,22 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
   for(uint16_t idx = 0; idx < __count_addresses; idx++){
     // Look for the requested address
     if(__address_array[idx] == inAddress){
-      // Stored reset counter must be less than or equal to the current counter
+      // Stored reset counter must be less than or equal to the input reset counter
       if(__reset_counter_array[idx] < inResetCounter){
-        // If less than current value, save new value and reset message counter
+        // If less than input value, save new values
         __reset_counter_array[idx] = inResetCounter;
         __addToStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
+        __addToStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
         __storage_commit_callback();
         __message_counter_array[idx] = inMessageCounter;
         // Message is fully valid so return success
         return WiLP_RETURN_SUCCESS;
       } else if (__reset_counter_array[idx] != inResetCounter){
-        // Valid but no update needed, still check message counter
+        // If input reset counter is less than stored counter, return an error code
         return WiLP_RETURN_INVALID_RST_CTR;
       }
-      // Stored message counter must be less than the current counter
+
+      // Stored message counter must be less than the input message counter
       if(__message_counter_array[idx] < inMessageCounter){
         // If valid, update the stored message counter
         __message_counter_array[idx] = inMessageCounter;
@@ -304,11 +317,13 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
   if(__count_addresses < MAXIMUM_STORED_ADDRESSES){
     __address_array[__count_addresses] = inAddress;
     __message_counter_array[__count_addresses] = inMessageCounter;
+    __reset_counter_array[__count_addresses] = inResetCounter;
     // Increment the counter
     __count_addresses++;
     // Save the new __address_array and __count_addresses to storage
     // TODO: Check return value of these
     __addToStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
+    __addToStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
     __addToStorage_uint16t(&__count_addresses, STORAGE_COUNT_LOCATION, sizeof(__count_addresses));
     __storage_commit_callback();
     return WiLP_RETURN_ADDED_ADDRESS;

@@ -105,6 +105,8 @@ class WiLEDProto {
     void __setDestinationByte(uint16_t inDestination);
     void __setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValue);
 
+    void __wipeLastReceived();
+
     uint8_t __checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inResetCounter, uint16_t inMessageCounter);
 
     // Store callback functions for storage read and write (usually EEPROM)

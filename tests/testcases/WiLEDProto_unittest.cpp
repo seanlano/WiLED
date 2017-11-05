@@ -81,7 +81,7 @@ TEST_F(ProcessMessageTest, IsEmptyInitially) {
 }
 
 /// Test that the class correctly identifies an invalid message
-TEST_F(ProcessMessageTest, IdentifyInvalidMessage) {
+TEST_F(ProcessMessageTest, DetectInvalidMessage) {
   uint8_t invalid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
   // Set magic number to 0x01 (i.e. invalid type)
   invalid_message[0] = 0x01;
@@ -367,6 +367,33 @@ TEST_F(ProcessMessageTest, Correct131071MessageCounter) {
   EXPECT_EQ(p1_reset_counter, 3);
 }
 
+/// Check the class correctly identifies a repeated message
+TEST_F(ProcessMessageTest, DetectRepeatedMessage) {
+  // First, create a message in p1 with uptime
+  const uint32_t uptime = 0x499602D2; // Decimal = 1234567890
+  // Create buffer for sent message
+  uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // "Send" message and copy to buffer
+  p1.sendMessageBeacon(uptime);
+  p1.copyToBuffer(p1_buffer);
+  // Store the Beacon message type number
+  const uint8_t beacon_type = WiLP_Beacon;
+
+  // Next, check the message from p1 is received properly by p2
+  ASSERT_EQ(p2.processMessage(p1_buffer), WiLP_RETURN_SUCCESS);
+  // Then, check p2 detects a repeated message
+  const uint8_t invalid_message_counter = WiLP_RETURN_INVALID_MSG_CTR;
+  ASSERT_EQ(p2.processMessage(p1_buffer), invalid_message_counter);
+
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p2.getLastReceivedResetCounter(), 1); //p1 was just initialised
+  EXPECT_EQ(p2.getLastReceivedMessageCounter(), 1); //p1 was just initialised
+  EXPECT_EQ(p2.getLastReceivedSource(), 0x1000); // p1 is 0x1000 address
+  EXPECT_EQ(p2.getLastReceivedDestination(), 0xFFFF); // Beacon is a broadcast
+  EXPECT_EQ(p2.getLastReceivedType(), beacon_type);
+  // TODO: Check uptime is received properly (need to implement first)
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for general message handling
 ////////////////////////////////////////////////////////////////////////////////
@@ -398,7 +425,9 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageReceive) {
   valid_message[11] = 0x96;
   valid_message[12] = 0x02;
   valid_message[13] = 0xD2;
-  // TODO: Set checksum bits
+  // CRC-CCITT (XModem) checksum (big-endian), 0x76F6
+  //valid_message[14] = 0x76;
+  //valid_message[15] = 0xF6;
 
   // Check the message is received properly
   ASSERT_EQ(p1.processMessage(valid_message), WiLP_RETURN_SUCCESS);
@@ -436,7 +465,9 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageSend) {
   valid_message[11] = 0x96;
   valid_message[12] = 0x02;
   valid_message[13] = 0xD2;
-  // TODO: Set checksum bits
+  // CRC-CCITT (XModem) checksum (big-endian), 0x19B3
+  //valid_message[14] = 0x19;
+  //valid_message[15] = 0xB3;
 
   // Create buffer for sent message
   uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
