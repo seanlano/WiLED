@@ -22,8 +22,6 @@
 #include "lib/WiLEDProto/WiLEDProto.h"
 #include "gtest/gtest.h"
 
-namespace {
-
 // Blank "storage read" function to pass to the WiLP initialiser
 uint8_t BlankReader(uint16_t inAddress){
   uint16_t a = inAddress; // Just to avoid compiler warnings
@@ -43,7 +41,7 @@ void BlankCommitter(){
   a++; // Just to avoid compiler warnings
 }
 
-// Test fixture to check WiLEDProto.processMessage returns correct values
+/// Test fixture for WiLEDProto
 class ProcessMessageTest : public testing::Test {
   protected:
     // Class instances within a class need to be initialised in the top-level
@@ -67,6 +65,10 @@ class ProcessMessageTest : public testing::Test {
 
     //virtual void TearDown() {}
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN tests for general message handling
+////////////////////////////////////////////////////////////////////////////////
 
 /// Test that the class is empty after being initialised
 TEST_F(ProcessMessageTest, IsEmptyInitially) {
@@ -305,6 +307,68 @@ TEST_F(ProcessMessageTest, Correct65537MessageCounter) {
   EXPECT_EQ(p1_reset_counter, 2);
 }
 
+/// Check the class correctly sets its message counter (just before 2nd overflow)
+TEST_F(ProcessMessageTest, Correct131070MessageCounter) {
+  const uint32_t number_runs = 131070;
+  // Create a buffer to store the output message
+  uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Choose a value for "millis()" to pass to the sender
+  const uint32_t p1_millis = 1234567890;
+  // Loop for 65536 times, to increment the message counter and oveflow it
+  for (uint32_t message_counter = 0; message_counter < number_runs; message_counter++)
+  {
+    p1.sendMessageBeacon(p1_millis);
+    p1.copyToBuffer(p1_buffer);
+  }
+  // Pull out the message counter from the buffer
+  uint16_t p1_message_counter = 0;
+  // Bytes 7 and 8 are the message counter
+  p1_message_counter = (p1_buffer[7] << 8);
+  p1_message_counter += p1_buffer[8];
+  // Do the actual comparison (message_counter = 65535 just before overflow)
+  EXPECT_EQ(p1_message_counter, 65535);
+
+  // Pull out the reset counter from the buffer
+  uint16_t p1_reset_counter = 0;
+  // Bytes 5 and 6 are the reset counter
+  p1_reset_counter = (p1_buffer[5] << 8);
+  p1_reset_counter += p1_buffer[6];
+  // Reset counter should be 2 (since we overflowed p1 once)
+  EXPECT_EQ(p1_reset_counter, 2);
+}
+
+/// Check the class correctly sets its message counter (just after 2nd overflow)
+TEST_F(ProcessMessageTest, Correct131071MessageCounter) {
+  const uint32_t number_runs = 131071;
+  // Create a buffer to store the output message
+  uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Choose a value for "millis()" to pass to the sender
+  const uint32_t p1_millis = 1234567890;
+  // Loop for 65536 times, to increment the message counter and oveflow it
+  for (uint32_t message_counter = 0; message_counter < number_runs; message_counter++)
+  {
+    p1.sendMessageBeacon(p1_millis);
+    p1.copyToBuffer(p1_buffer);
+  }
+  // Pull out the message counter from the buffer
+  uint16_t p1_message_counter = 0;
+  // Bytes 7 and 8 are the message counter
+  p1_message_counter = (p1_buffer[7] << 8);
+  p1_message_counter += p1_buffer[8];
+  // Do the actual comparison (message_counter = 1 just after overflow)
+  EXPECT_EQ(p1_message_counter, 1);
+
+  // Pull out the reset counter from the buffer
+  uint16_t p1_reset_counter = 0;
+  // Bytes 5 and 6 are the reset counter
+  p1_reset_counter = (p1_buffer[5] << 8);
+  p1_reset_counter += p1_buffer[6];
+  // Reset counter should be 3 (since we overflowed p1 twice)
+  EXPECT_EQ(p1_reset_counter, 3);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// END tests for general message handling
 ////////////////////////////////////////////////////////////////////////////////
 // BEGIN tests for "Beacon" message type, 0x01
 ////////////////////////////////////////////////////////////////////////////////
@@ -411,5 +475,3 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageSendReceive) {
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for "Beacon" message type
 ////////////////////////////////////////////////////////////////////////////////
-
-} // end namespace

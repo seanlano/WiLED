@@ -146,15 +146,24 @@ uint8_t WiLEDProto::sendMessageBeacon(uint32_t inUptime){
 void WiLEDProto::copyToBuffer(uint8_t * inBuffer){
   /// copyToBuffer can only be called once. After calling, the
   /// message contents must be set again.
+
+  // Increment and set message counter bytes (big endian)
+  // If at maximum for uint16_t, increment reset counter and go back to zero
+  if(__self_message_counter == 65535){
+    __self_message_counter = 0;
+    // Increment the reset counter and store it
+    __self_reset_counter++;
+    __addToStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
+    __storage_commit_callback();
+  }
+  __self_message_counter++;
+  __outgoing_message_buffer[7] = (__self_message_counter >> 8);
+  __outgoing_message_buffer[8] = (__self_message_counter);
+
   // Set reset counter bytes
   __outgoing_message_buffer[5] = (__self_reset_counter >> 8);
   __outgoing_message_buffer[6] = (__self_reset_counter);
 
-  // Increment and set message counter bytes (big endian)
-  // TODO: Handle overflow of message counter
-  __self_message_counter++;
-  __outgoing_message_buffer[7] = (__self_message_counter >> 8);
-  __outgoing_message_buffer[8] = (__self_message_counter);
 
   // Copy internal buffer to provided address
   memcpy(inBuffer, __outgoing_message_buffer, MAXIMUM_MESSAGE_LENGTH);
