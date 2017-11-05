@@ -24,7 +24,7 @@ CXXFLAGS += -D GTEST_BUILD -g -Wall -Wextra -pthread
 ################################################################################
 ## List all tests produced by this makefile. Remember to add new ones. #########
 ################################################################################
-TESTS = WiLEDProto_unittest
+TESTS = WiLEDProto_unittest CRC16_unittest
 ################################################################################
 ################################################################################
 
@@ -62,13 +62,27 @@ gtest_main.a : gtest-all.o gtest_main.o
 
 WiLEDProto.o : $(USER_DIR)/lib/WiLEDProto/WiLEDProto.cpp \
 							 $(USER_DIR)/lib/WiLEDProto/WiLEDProto.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/WiLEDProto/WiLEDProto.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(USER_DIR) \
+	-c $(USER_DIR)/lib/WiLEDProto/WiLEDProto.cpp
 
 WiLEDProto_unittest.o : $(USER_DIR)/WiLEDProto_unittest.cpp \
                      		$(USER_DIR)/lib/WiLEDProto/WiLEDProto.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/WiLEDProto_unittest.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(USER_DIR) \
+	-c $(USER_DIR)/WiLEDProto_unittest.cpp
 
 WiLEDProto_unittest : WiLEDProto.o WiLEDProto_unittest.o gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+
+
+CRC16.o : $(USER_DIR)/lib/CRC16/CRC16.cpp \
+					$(USER_DIR)/lib/CRC16/CRC16.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/CRC16/CRC16.cpp
+
+CRC16_unittest.o : $(USER_DIR)/CRC16_unittest.cpp \
+              		 $(USER_DIR)/lib/CRC16/CRC16.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/CRC16_unittest.cpp
+
+CRC16_unittest : CRC16.o CRC16_unittest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
 ################################################################################

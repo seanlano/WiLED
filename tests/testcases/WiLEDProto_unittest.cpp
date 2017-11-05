@@ -20,6 +20,7 @@
 */
 
 #include "lib/WiLEDProto/WiLEDProto.h"
+#include "lib/CRC16/CRC16.h"
 #include "gtest/gtest.h"
 
 // Blank "storage read" function to pass to the WiLP initialiser

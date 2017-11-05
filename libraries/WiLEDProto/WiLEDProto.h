@@ -23,13 +23,15 @@
 #ifndef WILEDPROTO_H
 #define WILEDPROTO_H
 
-#ifdef GTEST_BUILD
+#ifdef GTEST_BUILD // i.e. if building the unit tests
   #include <stdlib.h>
   #include <stdint.h>
   #include <stdio.h>
   #include <string.h>
-#else
+  #include "lib/CRC16/CRC16.h"
+#else // i.e. a normal build
   #include <Arduino.h>
+  #include <CRC16.h>
 #endif
 
 #define MAXIMUM_STORED_ADDRESSES 100
