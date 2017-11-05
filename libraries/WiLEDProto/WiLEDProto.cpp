@@ -50,7 +50,7 @@ WiLEDProto::WiLEDProto(
 
 void WiLEDProto::initStorage(){
   // Read the addresses and reset counter arrays from storage
-  if(__storage_commit_callback > 0 && __storage_write_callback > 0){
+  if(__storage_commit_callback != NULL && __storage_write_callback != NULL){
     // TODO: Check the return value of these
     __restoreFromStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
     __restoreFromStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
@@ -61,17 +61,19 @@ void WiLEDProto::initStorage(){
     __storage_commit_callback();
 
     // Arduino-specific debug
-    Serial.print("Loaded addresses: ");
-    Serial.println(__count_addresses);
-    Serial.print("Addresses: ");
-    for(uint16_t idx=0; idx < __count_addresses; idx++){
-      Serial.print(__address_array[idx], HEX);
-      Serial.print(", ");
-    }
-    Serial.println();
-    Serial.print("This device's reset counter: ");
-    Serial.println(__self_reset_counter);
-    Serial.println();
+    #ifdef ARDUINO_DEBUG
+      Serial.print("Loaded addresses: ");
+      Serial.println(__count_addresses);
+      Serial.print("Addresses: ");
+      for(uint16_t idx=0; idx < __count_addresses; idx++){
+        Serial.print(__address_array[idx], HEX);
+        Serial.print(", ");
+      }
+      Serial.println();
+      Serial.print("This device's reset counter: ");
+      Serial.println(__self_reset_counter);
+      Serial.println();
+    #endif
   }
 }
 
@@ -80,11 +82,7 @@ void WiLEDProto::initStorage(){
 uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   // Check if first byte is magic number
   if(inBuffer[0] != 0xAA){
-    __last_received_destination = 0;
-    __last_received_source = 0;
-    __last_received_type = 0;
-    __last_received_reset_counter = 0;
-    __last_received_message_counter = 0;
+    __wipeLastReceived();
     return WiLP_RETURN_INVALID_BUFFER;
   }
   // Store the received message destination (left shift)
@@ -122,7 +120,13 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
     memcpy(__last_received_payload, &inBuffer[10], __last_received_payload_length);
   }
 
-  return WiLP_RETURN_SUCCESS;
+  // If received message does not pass the validation, return with an error code
+  if((__last_received_message_counter_validation == WiLP_RETURN_SUCCESS) ||
+     (__last_received_message_counter_validation == WiLP_RETURN_ADDED_ADDRESS)){
+    return WiLP_RETURN_SUCCESS;
+  } else {
+    return __last_received_message_counter_validation;
+  }
 }
 
 
@@ -144,15 +148,24 @@ uint8_t WiLEDProto::sendMessageBeacon(uint32_t inUptime){
 void WiLEDProto::copyToBuffer(uint8_t * inBuffer){
   /// copyToBuffer can only be called once. After calling, the
   /// message contents must be set again.
+
+  // Increment and set message counter bytes (big endian)
+  // If at maximum for uint16_t, increment reset counter and go back to zero
+  if(__self_message_counter == 65535){
+    __self_message_counter = 0;
+    // Increment the reset counter and store it
+    __self_reset_counter++;
+    __addToStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
+    __storage_commit_callback();
+  }
+  __self_message_counter++;
+  __outgoing_message_buffer[7] = (__self_message_counter >> 8);
+  __outgoing_message_buffer[8] = (__self_message_counter);
+
   // Set reset counter bytes
   __outgoing_message_buffer[5] = (__self_reset_counter >> 8);
   __outgoing_message_buffer[6] = (__self_reset_counter);
 
-  // Increment and set message counter bytes (big endian)
-  // TODO: Handle overflow of message counter
-  __self_message_counter++;
-  __outgoing_message_buffer[7] = (__self_message_counter >> 8);
-  __outgoing_message_buffer[8] = (__self_message_counter);
 
   // Copy internal buffer to provided address
   memcpy(inBuffer, __outgoing_message_buffer, MAXIMUM_MESSAGE_LENGTH);
@@ -210,15 +223,26 @@ void WiLEDProto::__setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValu
 }
 
 
+void WiLEDProto::__wipeLastReceived(){
+  __last_received_destination = 0;
+  __last_received_source = 0;
+  __last_received_type = 0;
+  __last_received_reset_counter = 0;
+  __last_received_message_counter = 0;
+}
+
+
 uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t inStorageOffset, uint16_t inLength){
-  /*Serial.println("Reading to storage: ");
-  Serial.println((int)(void*)outArray, HEX);
-  Serial.println(inStorageOffset);
-  Serial.println(inLength);*/
+  #ifdef ARDUINO_DEBUG
+    //Serial.println("Reading to storage: ");
+    //Serial.println((int)(void*)outArray, HEX);
+    //Serial.println(inStorageOffset);
+    //Serial.println(inLength);
+  #endif
   // Make a 1-byte pointer to the array of 2-byte values
   uint8_t* p = (uint8_t*)(void*)outArray;
   // First, check callback has been set
-  if(__storage_read_callback > 0){
+  if(__storage_read_callback != NULL){
     for (uint16_t idx = 0; idx < inLength; idx++){
       // Read from the storage location into the array
       p[idx] = (*__storage_read_callback)(idx + inStorageOffset);
@@ -232,15 +256,17 @@ uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t in
 
 
 uint8_t WiLEDProto::__addToStorage_uint16t(uint16_t* inArray, uint16_t inStorageOffset, uint16_t inLength){
-  /*Serial.println("Adding to storage: ");
-  Serial.println((int)(void*)inArray, HEX);
-  Serial.println(*inArray);
-  Serial.println(inStorageOffset);
-  Serial.println(inLength);*/
+  #ifdef ARDUINO_DEBUG
+    //Serial.println("Adding to storage: ");
+    //Serial.println((int)(void*)inArray, HEX);
+    //Serial.println(*inArray);
+    //Serial.println(inStorageOffset);
+    //Serial.println(inLength);
+  #endif
   // Make a 1-byte pointer to the array of 2-byte values
   uint8_t* p = (uint8_t*)(void*)inArray;
   // First, check callback has been set
-  if(__storage_write_callback > 0){
+  if(__storage_write_callback != NULL){
     for (uint16_t idx = 0; idx < inLength; idx++){
       // Write from the array into the storage location
       (*__storage_write_callback)(idx + inStorageOffset, p[idx]);
@@ -259,20 +285,22 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
   for(uint16_t idx = 0; idx < __count_addresses; idx++){
     // Look for the requested address
     if(__address_array[idx] == inAddress){
-      // Stored reset counter must be less than or equal to the current counter
+      // Stored reset counter must be less than or equal to the input reset counter
       if(__reset_counter_array[idx] < inResetCounter){
-        // If less than current value, save new value and reset message counter
+        // If less than input value, save new values
         __reset_counter_array[idx] = inResetCounter;
         __addToStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
+        __addToStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
         __storage_commit_callback();
         __message_counter_array[idx] = inMessageCounter;
         // Message is fully valid so return success
         return WiLP_RETURN_SUCCESS;
       } else if (__reset_counter_array[idx] != inResetCounter){
-        // Valid but no update needed, still check message counter
+        // If input reset counter is less than stored counter, return an error code
         return WiLP_RETURN_INVALID_RST_CTR;
       }
-      // Stored message counter must be less than the current counter
+
+      // Stored message counter must be less than the input message counter
       if(__message_counter_array[idx] < inMessageCounter){
         // If valid, update the stored message counter
         __message_counter_array[idx] = inMessageCounter;
@@ -289,11 +317,13 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
   if(__count_addresses < MAXIMUM_STORED_ADDRESSES){
     __address_array[__count_addresses] = inAddress;
     __message_counter_array[__count_addresses] = inMessageCounter;
+    __reset_counter_array[__count_addresses] = inResetCounter;
     // Increment the counter
     __count_addresses++;
     // Save the new __address_array and __count_addresses to storage
     // TODO: Check return value of these
     __addToStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
+    __addToStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
     __addToStorage_uint16t(&__count_addresses, STORAGE_COUNT_LOCATION, sizeof(__count_addresses));
     __storage_commit_callback();
     return WiLP_RETURN_ADDED_ADDRESS;

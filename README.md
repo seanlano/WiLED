@@ -36,6 +36,8 @@ The Rotary library for Arduino, by Ben Buxton, has been used and the files `Rota
 
 Additionally, the wonderful RadioHead library from Mike McCauley and AirSpayce has been used via an inclusion through PlatformIO. [See here for the homepage](http://www.airspayce.com/mikem/arduino/RadioHead/index.html). It is GPLv2 licensed (not clear if this is GPLv2 _only_ or GPLv2+). 
 
+For unit tests, the [Google Test framework](https://github.com/google/googletest) is used. Necessary files are directly included in this repository, so that it is easy to compile and run unit tests without needing to separately download the Google Test source. Google Test is licensed under the [New BSD License](https://github.com/google/googletest/blob/master/googletest/LICENSE). 
+
 ## License
 
 This project is released under the terms of the GNU GPL version 3 (or later). Please see [LICENSE](LICENSE) for details. 
