@@ -63,6 +63,8 @@
 // __self_reset_counter is then stored after __count_addresses
 #define STORAGE_SELF_RESET_LOCATION (STORAGE_COUNT_LOCATION + sizeof(__count_addresses))
 
+
+
 class WiLEDProto {
   public:
     // Initialise with a single argument
@@ -74,7 +76,13 @@ class WiLEDProto {
 
     void initStorage();
 
+    // Set the 'Beacon' callback, which requires an argument of:
+    //   - uint16_t source address
+    //   - uint32_t beacon value (usuall uptime)
+    void setCallbackBeacon(void (*inBeaconRecvCB)(uint16_t, uint32_t));
+
     uint8_t processMessage(uint8_t* inBuffer);
+    void handleLastMessage();
 
     uint8_t sendMessageBeacon(uint32_t inUptime);
     uint8_t sendMessageDeviceStatus(uint8_t inOutput, uint8_t inGroup1, uint8_t inGroup2, uint8_t inGroup3, uint8_t inGroup4);
@@ -93,6 +101,7 @@ class WiLEDProto {
     uint16_t __self_reset_counter = 0;
     uint16_t __self_message_counter = 0;
 
+    uint8_t __last_was_valid = false;
     uint8_t __last_received_type = 0x00;
     uint16_t __last_received_source = 0;
     uint16_t __last_received_destination = 0;
@@ -101,6 +110,14 @@ class WiLEDProto {
     uint8_t __last_received_message_counter_validation = 0;
     uint8_t __last_received_payload_length = 0;
     uint8_t __last_received_payload[MAXIMUM_PAYLOAD_LENGTH] = {0};
+
+    // Declare a "void-returning member-function of WiLEDProto" to be a type
+    typedef void (WiLEDProto::*WiLEDMemFn)(void);
+    WiLEDMemFn __process_callback = NULL;
+
+
+    void (*__handler_cb_beacon)(uint16_t, uint32_t) = NULL;
+    void __handleTypeBeacon();
 
     uint8_t __outgoing_message_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
     uint8_t __outgoing_message_length = 0;

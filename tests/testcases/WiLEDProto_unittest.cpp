@@ -368,6 +368,37 @@ TEST_F(ProcessMessageTest, Correct131071MessageCounter) {
   EXPECT_EQ(p1_reset_counter, 3);
 }
 
+/// Check the class sends and then another can receive, 4 million times
+TEST_F(ProcessMessageTest, CorrectSendReceiveFourMillion) {
+  // Create buffer for sent message
+  uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+
+  // Store the Beacon message type number
+  const uint8_t beacon_type = WiLP_Beacon;
+
+  // Run a loop many times
+  const uint32_t loop_messages = 4000000;
+  for (uint32_t loop = 0; loop < loop_messages; loop++){
+    // "Send" message and copy to buffer
+    uint32_t uptime = loop*2;
+    p1.sendMessageBeacon(uptime);
+    p1.copyToBuffer(p1_buffer);
+
+    // Next, check the message from p1 is received properly by p2
+    // These are all "assert" tests, so we don't print a million error messages
+    ASSERT_EQ(p2.processMessage(p1_buffer), WiLP_RETURN_SUCCESS);
+    // Check the "getLast" calls are also valid
+    ASSERT_EQ(p2.getLastReceivedSource(), 0x1000); // p1 is 0x1000 address
+    ASSERT_EQ(p2.getLastReceivedDestination(), 0xFFFF); // Beacon is a broadcast
+    ASSERT_EQ(p2.getLastReceivedType(), beacon_type);
+  }
+}
+
+// TODO: Test that reset counter is correctly sent to the "storage" callback
+// TODO: Test that reset counter is correctly read from the "storage" callback
+// TODO: Test that address array is correctly sent to the "storage" callback
+// TODO: Test that address array is correctly read from the "storage" callback
+
 /// Check the class correctly identifies a repeated message
 TEST_F(ProcessMessageTest, DetectRepeatedMessage) {
   // First, create a message in p1 with uptime
@@ -392,7 +423,6 @@ TEST_F(ProcessMessageTest, DetectRepeatedMessage) {
   EXPECT_EQ(p2.getLastReceivedSource(), 0x1000); // p1 is 0x1000 address
   EXPECT_EQ(p2.getLastReceivedDestination(), 0xFFFF); // Beacon is a broadcast
   EXPECT_EQ(p2.getLastReceivedType(), beacon_type);
-  // TODO: Check uptime is received properly (need to implement first)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -440,7 +470,6 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageReceive) {
   EXPECT_EQ(p1.getLastReceivedSource(), 0x1001);
   EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF);
   EXPECT_EQ(p1.getLastReceivedType(), beacon_type);
-  // TODO: Check uptime is received properly (need to implement first)
 }
 
 /// Check the class correctly sends a Beacon message
@@ -523,7 +552,40 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageSendReceive) {
   EXPECT_EQ(p2.getLastReceivedSource(), 0x1000); // p1 is 0x1000 address
   EXPECT_EQ(p2.getLastReceivedDestination(), 0xFFFF); // Beacon is a broadcast
   EXPECT_EQ(p2.getLastReceivedType(), beacon_type);
-  // TODO: Check uptime is received properly (need to implement first)
+}
+
+/// Check the class correctly handles the callback for Beacon messages
+// Define a callback to be used when a Beacon message is received
+uint16_t p2_processed_address = 0;
+uint32_t p2_processed_uptime = 0;
+void handleBeacon(uint16_t sourceAddress, uint32_t uptime){
+  p2_processed_address = sourceAddress;
+  p2_processed_uptime = uptime;
+}
+TEST_F(ProcessMessageTest, CorrectBeaconMessageCallback) {
+  // Reset these variables for this test, just in case
+  p2_processed_address = 0;
+  p2_processed_uptime = 0;
+  // Create a message in p1 with uptime
+  const uint32_t input_uptime = 0x499602D2; // Decimal = 1234567890
+  const uint16_t input_address = 0x1000; // p1 address is 0x1000
+  // Create buffer for sent message
+  uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // "Send" message and copy to buffer
+  p1.sendMessageBeacon(input_uptime);
+  p1.copyToBuffer(p1_buffer);
+
+  // Configure p2 to use the 'handleBeacon' function as a callback
+  p2.setCallbackBeacon(&handleBeacon);
+
+  // Next, check the message from p1 is received properly by p2
+  ASSERT_EQ(p2.processMessage(p1_buffer), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p2.getLastReceivedSource(), input_address); // p1 is 0x1000 address
+  // Check the callback is handled properly
+  p2.handleLastMessage(); // This should set p2_processed_uptime to input_uptime
+  EXPECT_EQ(p2_processed_address, input_address);
+  EXPECT_EQ(p2_processed_uptime, input_uptime);
 }
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for "Beacon" message type

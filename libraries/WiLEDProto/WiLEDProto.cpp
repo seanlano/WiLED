@@ -78,8 +78,14 @@ void WiLEDProto::initStorage(){
 }
 
 
+void WiLEDProto::setCallbackBeacon(void (*inCBBeacon)(uint16_t, uint32_t)){
+  __handler_cb_beacon = inCBBeacon;
+}
+
+
 // Process a received message
 uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
+  __last_was_valid = false;
   // Check if first byte is magic number
   if(inBuffer[0] != 0xAA){
     __wipeLastReceived();
@@ -110,13 +116,15 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
                                  __last_received_reset_counter,
                                  __last_received_message_counter);
 
-  // Determine the payload length
+  // Determine the payload length and which process callback to use
   switch(__last_received_type){
     case WiLP_Beacon:
       __last_received_payload_length = 4;
+      __process_callback = &WiLEDProto::__handleTypeBeacon;
       break;
     default:
       __last_received_payload_length = 0;
+      __process_callback = NULL;
       return WiLP_RETURN_UNKNOWN_TYPE;
   }
   // Store the payload bytes in an array
@@ -138,9 +146,21 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   // If received message does not pass the validation, return with an error code
   if((__last_received_message_counter_validation == WiLP_RETURN_SUCCESS) ||
      (__last_received_message_counter_validation == WiLP_RETURN_ADDED_ADDRESS)){
+    // Store the fact that this is a valid message
+    __last_was_valid = true;
+    // Return to caller with success
     return WiLP_RETURN_SUCCESS;
   } else {
     return __last_received_message_counter_validation;
+  }
+}
+
+
+// Handle the callback for the last received message, if there is one
+void WiLEDProto::handleLastMessage(){
+  if((__process_callback != NULL) && (__last_was_valid == true)){
+    // Run the callback, with funky C++ syntax for calling a member-function pointer
+    (this->*__process_callback)();
   }
 }
 
@@ -361,4 +381,19 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
   }
   // We should never get here, but just in case
   return WiLP_RETURN_OTHER_ERROR;
+}
+
+
+// Handle a 'Beacon' message
+void WiLEDProto::__handleTypeBeacon(){
+  if(__handler_cb_beacon != NULL){
+    // Convert the big-endian payload into the uptime value
+    uint32_t uptime;
+    uptime =  (__last_received_payload[0] << 24);
+    uptime += (__last_received_payload[1] << 16);
+    uptime += (__last_received_payload[2] << 8);
+    uptime += (__last_received_payload[3]);
+    // Call the callback, with the source address and the payload value
+    __handler_cb_beacon(__last_received_source, uptime);
+  }
 }
