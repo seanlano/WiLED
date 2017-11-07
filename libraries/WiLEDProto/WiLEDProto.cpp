@@ -34,15 +34,15 @@ WiLEDProto::WiLEDProto(
   __storage_commit_callback = inStorageCommitCB;
   // Store the address, must not be 0 or 65535
   if(inAddress > 0 && inAddress < 65535){
-    __address = inAddress;
+    __self_status.address = inAddress;
   } else {
-    __address = 0;
+    __self_status.address = 0;
   }
   // Set magic number
   __outgoing_message_buffer[0] = 0xAA;
   // Set source address (as big-endian 2-byte number)
-  __outgoing_message_buffer[1] = (__address >> 8);
-  __outgoing_message_buffer[2] = (__address);
+  __outgoing_message_buffer[1] = (__self_status.address >> 8);
+  __outgoing_message_buffer[2] = (__self_status.address);
 }
 
 /// initStorage() should be called after setting up the storage device in the
@@ -103,7 +103,7 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
   __last_received_message_counter = (inBuffer[7] << 8);
   __last_received_message_counter += inBuffer[8];
   // Check if we are the destination
-  if((__last_received_destination != __address) &&
+  if((__last_received_destination != __self_status.address) &&
      (__last_received_destination != 0xFFFF)){
     return WiLP_RETURN_NOT_THIS_DEST;
   }

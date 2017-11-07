@@ -64,7 +64,14 @@
 #define STORAGE_SELF_RESET_LOCATION (STORAGE_COUNT_LOCATION + sizeof(__count_addresses))
 
 
+// Define a struct for storing and passing WiLED device information
+struct WiLEDStatus {
+  uint16_t address = 0;
+  uint8_t level = 0;
+  uint8_t attachedGroup[4] = {0};
+};
 
+// Define the class itself
 class WiLEDProto {
   public:
     // Initialise with a single argument
@@ -145,6 +152,9 @@ class WiLEDProto {
     uint16_t __address_array[MAXIMUM_STORED_ADDRESSES] = {0};
     uint16_t __reset_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
     uint16_t __message_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
+
+    // Store a struct of stuff related to this handler's current state
+    WiLEDStatus __self_status;
 };
 
 #endif
