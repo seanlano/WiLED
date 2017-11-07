@@ -21,15 +21,13 @@
 
 #include "WiLEDProto.h"
 
-/************ Public methods *****************************/
-
-// Initialise the WiLEDProto class with its address
+/// Initialise the WiLEDProto class with its address, and storage callbacks
 WiLEDProto::WiLEDProto(
   uint16_t inAddress,
   uint8_t (*inStorageReadCB)(uint16_t),
   void (*inStorageWriteCB)(uint16_t, uint8_t),
-  void (*inStorageCommitCB)(void)
-){
+  void (*inStorageCommitCB)(void))
+{
   // Store callbacks
   __storage_read_callback = inStorageReadCB;
   __storage_write_callback = inStorageWriteCB;
@@ -47,14 +45,18 @@ WiLEDProto::WiLEDProto(
   __outgoing_message_buffer[2] = (__address);
 }
 
-
+/// initStorage() should be called after setting up the storage device in the
+/// main program, i.e. once storage callbacks are ready to be used.
 void WiLEDProto::initStorage(){
-  // Read the addresses and reset counter arrays from storage
+
   if(__storage_commit_callback != NULL && __storage_write_callback != NULL){
-    // TODO: Check the return value of these
+    // TODO: Check the return value of these?
+    // Read the addresses and reset counter arrays from storage
     __restoreFromStorage_uint16t(__address_array, STORAGE_ADDRESSES_LOCATION, sizeof(__address_array));
     __restoreFromStorage_uint16t(__reset_counter_array, STORAGE_RESET_LOCATION, sizeof(__reset_counter_array));
     __restoreFromStorage_uint16t(&__count_addresses, STORAGE_COUNT_LOCATION, sizeof(__count_addresses));
+
+    // Read this devices own reset counter, then increment it and store it
     __restoreFromStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
     __self_reset_counter++;
     __addToStorage_uint16t(&__self_reset_counter, STORAGE_SELF_RESET_LOCATION, sizeof(__self_reset_counter));
@@ -75,11 +77,6 @@ void WiLEDProto::initStorage(){
       Serial.println();
     #endif
   }
-}
-
-
-void WiLEDProto::setCallbackBeacon(void (*inCBBeacon)(uint16_t, uint32_t)){
-  __handler_cb_beacon = inCBBeacon;
 }
 
 
@@ -165,24 +162,6 @@ void WiLEDProto::handleLastMessage(){
 }
 
 
-// Send a "Beacon" message
-uint8_t WiLEDProto::sendMessageBeacon(uint32_t inUptime){
-  __setTypeByte(WiLP_Beacon);
-  __setDestinationByte(0xFFFF);
-
-  // Use right-shift to break into four (big endian) 1-byte blocks
-  __setPayloadByte(0, (inUptime >> 24));
-  __setPayloadByte(1, (inUptime >> 16));
-  __setPayloadByte(2, (inUptime >> 8));
-  __setPayloadByte(3, (inUptime));
-
-  // Store the message length. 10 bytes header, 4 bytes payload, 2 bytes checksum
-  __outgoing_message_length = 16;
-
-  return WiLP_RETURN_SUCCESS;
-}
-
-
 void WiLEDProto::copyToBuffer(uint8_t * inBuffer){
   /// copyToBuffer can only be called once. After calling, the
   /// message contents must be set again.
@@ -225,31 +204,104 @@ void WiLEDProto::copyToBuffer(uint8_t * inBuffer){
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN 'sendMessageTYPE' section
+//
+// Each WiLP message type has a 'sendMessageTYPE' function. These functions
+// format the internal payload buffer with their specific data, possibly taking
+// one or more arguments to do so.
+// They must return to the calling program a uint8_t return code, of the values
+// set through #define statements in WiLEDProto.h, eg. WiLP_RETURN_SUCCESS etc.
+//
+/// Send a "Beacon" message
+uint8_t WiLEDProto::sendMessageBeacon(uint32_t inUptime){
+  __setTypeByte(WiLP_Beacon);
+  __setDestinationByte(0xFFFF);
+
+  // Use right-shift to break into four (big endian) 1-byte blocks
+  __setPayloadByte(0, (inUptime >> 24));
+  __setPayloadByte(1, (inUptime >> 16));
+  __setPayloadByte(2, (inUptime >> 8));
+  __setPayloadByte(3, (inUptime));
+
+  // Store the message length. 10 bytes header, 4 bytes payload, 2 bytes checksum
+  __outgoing_message_length = 16;
+
+  return WiLP_RETURN_SUCCESS;
+}
+//
+////////////////////////////////////////////////////////////////////////////////
+// END 'sendMessageTYPE' section
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN 'setCallbackTYPE' section
+//
+// Each WiLP message type has a 'setCallbackTYPE' function. This stores a
+// callback that enables the WiLP handler to communicate received changes back
+// to the main program. The callback functions must return void and accept the
+// relevant arguments for that message type (usually source address and payload
+// value).
+//
+void WiLEDProto::setCallbackBeacon(void (*inCBBeacon)(uint16_t, uint32_t)){
+  __handler_cb_beacon = inCBBeacon;
+}
+//
+////////////////////////////////////////////////////////////////////////////////
+// END 'setCallbackTYPE' section
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN '__handleTypeTYPE' section
+//
+// These private member functions will be run when handleLastMessage() is called
+// and will run the callback functions defined in the 'setCallbackTYPE' section.
+//
+/// Handle a 'Beacon' message
+void WiLEDProto::__handleTypeBeacon(){
+  if(__handler_cb_beacon != NULL){
+    // Convert the big-endian payload into the uptime value
+    uint32_t uptime;
+    uptime =  (__last_received_payload[0] << 24);
+    uptime += (__last_received_payload[1] << 16);
+    uptime += (__last_received_payload[2] << 8);
+    uptime += (__last_received_payload[3]);
+    // Call the callback, with the source address and the payload value
+    __handler_cb_beacon(__last_received_source, uptime);
+  }
+}
+//
+////////////////////////////////////////////////////////////////////////////////
+// END '__handleTypeTYPE' section
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN getter section
+//
+// Boilerplate C++ class 'getter' functions
+//
 uint8_t WiLEDProto::getLastReceivedType(){
   return __last_received_type;
 }
-
+//
 uint16_t WiLEDProto::getLastReceivedSource(){
   return __last_received_source;
 }
-
+//
 uint16_t WiLEDProto::getLastReceivedDestination(){
   return __last_received_destination;
 }
-
+//
 uint16_t WiLEDProto::getLastReceivedResetCounter(){
   return __last_received_reset_counter;
 }
-
+//
 uint16_t WiLEDProto::getLastReceivedMessageCounter(){
   return __last_received_message_counter;
 }
-
+//
 uint8_t WiLEDProto::getLastReceivedMessageCounterValidation(){
   return __last_received_message_counter_validation;
 }
+//
+////////////////////////////////////////////////////////////////////////////////
+// END getter section
+////////////////////////////////////////////////////////////////////////////////
 
-/************ Private methods ***************************/
 
 // Set the "type" byte in the output buffer
 void WiLEDProto::__setTypeByte(uint8_t inType){
@@ -282,10 +334,10 @@ void WiLEDProto::__wipeLastReceived(){
 
 uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t inStorageOffset, uint16_t inLength){
   #ifdef ARDUINO_DEBUG
-    //Serial.println("Reading to storage: ");
-    //Serial.println((int)(void*)outArray, HEX);
-    //Serial.println(inStorageOffset);
-    //Serial.println(inLength);
+    Serial.println("Reading to storage: ");
+    Serial.println((int)(void*)outArray, HEX);
+    Serial.println(inStorageOffset);
+    Serial.println(inLength);
   #endif
   // Make a 1-byte pointer to the array of 2-byte values
   uint8_t* p = (uint8_t*)(void*)outArray;
@@ -305,11 +357,11 @@ uint8_t WiLEDProto::__restoreFromStorage_uint16t(uint16_t* outArray, uint16_t in
 
 uint8_t WiLEDProto::__addToStorage_uint16t(uint16_t* inArray, uint16_t inStorageOffset, uint16_t inLength){
   #ifdef ARDUINO_DEBUG
-    //Serial.println("Adding to storage: ");
-    //Serial.println((int)(void*)inArray, HEX);
-    //Serial.println(*inArray);
-    //Serial.println(inStorageOffset);
-    //Serial.println(inLength);
+    Serial.println("Adding to storage: ");
+    Serial.println((int)(void*)inArray, HEX);
+    Serial.println(*inArray);
+    Serial.println(inStorageOffset);
+    Serial.println(inLength);
   #endif
   // Make a 1-byte pointer to the array of 2-byte values
   uint8_t* p = (uint8_t*)(void*)inArray;
@@ -381,19 +433,4 @@ uint8_t WiLEDProto::__checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t 
   }
   // We should never get here, but just in case
   return WiLP_RETURN_OTHER_ERROR;
-}
-
-
-// Handle a 'Beacon' message
-void WiLEDProto::__handleTypeBeacon(){
-  if(__handler_cb_beacon != NULL){
-    // Convert the big-endian payload into the uptime value
-    uint32_t uptime;
-    uptime =  (__last_received_payload[0] << 24);
-    uptime += (__last_received_payload[1] << 16);
-    uptime += (__last_received_payload[2] << 8);
-    uptime += (__last_received_payload[3]);
-    // Call the callback, with the source address and the payload value
-    __handler_cb_beacon(__last_received_source, uptime);
-  }
 }
