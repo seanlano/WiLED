@@ -23,6 +23,8 @@
 #include "lib/CRC16/CRC16.h"
 #include "gtest/gtest.h"
 
+//#define DO_LONG_TESTS 1 // uncomment this to allow running long and slow tests
+
 // Blank "storage read" function to pass to the WiLP initialiser
 uint8_t BlankReader(uint16_t inAddress){
   uint16_t a = inAddress; // Just to avoid compiler warnings
@@ -308,6 +310,7 @@ TEST_F(ProcessMessageTest, Correct65537MessageCounter) {
   EXPECT_EQ(p1_reset_counter, 2);
 }
 
+#ifdef DO_LONG_TESTS
 /// Check the class correctly sets its message counter (just before 2nd overflow)
 TEST_F(ProcessMessageTest, Correct131070MessageCounter) {
   const uint32_t number_runs = 131070;
@@ -393,6 +396,7 @@ TEST_F(ProcessMessageTest, CorrectSendReceiveFourMillion) {
     ASSERT_EQ(p2.getLastReceivedType(), beacon_type);
   }
 }
+#endif
 
 // TODO: Test that reset counter is correctly sent to the "storage" callback
 // TODO: Test that reset counter is correctly read from the "storage" callback
@@ -589,4 +593,118 @@ TEST_F(ProcessMessageTest, CorrectBeaconMessageCallback) {
 }
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for "Beacon" message type
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN tests for "Set Individual" message type, 0x10
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check the class correctly handles a valid 'Set Individual' message
+uint8_t p1_output = 0;
+uint8_t handleSetIndividual_hasrun = false;
+void handleSetIndividual(WiLEDStatus inStatus){
+  // Set the 'output' to the given level
+  p1_output = inStatus.level;
+  // Flag that the callback has been run, to detect possible erroneous calls
+  handleSetIndividual_hasrun = true;
+}
+TEST_F(ProcessMessageTest, CorrectSetIndividualCallback) {
+  // Reset the output
+  p1_output = 0;
+  handleSetIndividual_hasrun = false;
+  // Create a valid message to pass to p1
+  uint8_t valid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Set magic number to 0xAA (i.e. valid type)
+  valid_message[0] = 0xAA;
+  // Set source address to 0x1111 (big endian)
+  valid_message[1] = 0x11;
+  valid_message[2] = 0x11;
+  // Set destination address to 0xFFFF
+  valid_message[3] = 0xFF;
+  valid_message[4] = 0xFF;
+  // Set reset counter to 1 (this should be the first message being sent)
+  valid_message[5] = 0x00;
+  valid_message[6] = 0x01;
+  // Set message counter to 1 (this should be the first message being sent)
+  valid_message[7] = 0x00;
+  valid_message[8] = 0x01;
+  // Set message type flag to WiLP_Set_Individual
+  const uint8_t set_individual_type = WiLP_Set_Individual; // 0x10
+  valid_message[9] = set_individual_type;
+  // Set the 3 payload bytes to the output level and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+  valid_message[10] = target_level;
+  // Set target address to 0x1000, i.e. address of p1
+  valid_message[11] = 0x10;
+  valid_message[12] = 0x00;
+  // CRC-CCITT (XModem) checksum (big-endian), 0x0C73
+  valid_message[13] = 0x0C;
+  valid_message[14] = 0x73;
+
+  // Configure p1 to use the callback defined above
+  p1.setCallbackSetIndividual(&handleSetIndividual);
+  // Next, check the message is received properly by p1
+  ASSERT_EQ(p1.processMessage(valid_message), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedSource(), 0x1111); // manually set to 0x1111
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF); // Set Individual is a broadcast
+  EXPECT_EQ(p1.getLastReceivedType(), set_individual_type);
+  // Check the callback runs properly
+  p1.handleLastMessage(); // This should set p1_output to 0x64
+  EXPECT_EQ(p1_output, target_level);
+}
+
+/// Check the class correctly ignores an invalid 'Set Individual' message
+TEST_F(ProcessMessageTest, InvalidSetIndividualCallback) {
+  // Reset the output
+  p1_output = 0;
+  handleSetIndividual_hasrun = false;
+  // Create a valid message to pass to p1
+  uint8_t valid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Set magic number to 0xAA (i.e. valid type)
+  valid_message[0] = 0xAA;
+  // Set source address to 0x1111 (big endian)
+  valid_message[1] = 0x11;
+  valid_message[2] = 0x11;
+  // Set destination address to 0xFFFF
+  valid_message[3] = 0xFF;
+  valid_message[4] = 0xFF;
+  // Set reset counter to 1 (this should be the first message being sent)
+  valid_message[5] = 0x00;
+  valid_message[6] = 0x01;
+  // Set message counter to 1 (this should be the first message being sent)
+  valid_message[7] = 0x00;
+  valid_message[8] = 0x01;
+  // Set message type flag to WiLP_Set_Individual
+  const uint8_t set_individual_type = WiLP_Set_Individual; // 0x10
+  valid_message[9] = set_individual_type;
+  // Set the 3 payload bytes to the output level and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+  valid_message[10] = target_level;
+  // Set target address to 0x1001, i.e. not the address of p1
+  valid_message[11] = 0x10;
+  valid_message[12] = 0x01;
+  // CRC-CCITT (XModem) checksum (big-endian), 0x1C52
+  valid_message[13] = 0x1C;
+  valid_message[14] = 0x52;
+
+  // Configure p1 to use the callback defined above
+  p1.setCallbackSetIndividual(&handleSetIndividual);
+  // Next, check the message is received properly by p1
+  ASSERT_EQ(p1.processMessage(valid_message), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedSource(), 0x1111); // manually set to 0x1111
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF); // Set Individual is a broadcast
+  EXPECT_EQ(p1.getLastReceivedType(), set_individual_type);
+  // Check the callback runs properly
+  p1.handleLastMessage();
+  // The callback should not be called at all
+  EXPECT_FALSE(handleSetIndividual_hasrun);
+  EXPECT_EQ(p1_output, 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// END tests for "Set Individual" message type
 ////////////////////////////////////////////////////////////////////////////////

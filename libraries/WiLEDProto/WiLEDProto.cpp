@@ -119,6 +119,10 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
       __last_received_payload_length = 4;
       __process_callback = &WiLEDProto::__handleTypeBeacon;
       break;
+    case WiLP_Set_Individual:
+      __last_received_payload_length = 3;
+      __process_callback = &WiLEDProto::__handleTypeSetIndividual;
+      break;
     default:
       __last_received_payload_length = 0;
       __process_callback = NULL;
@@ -245,13 +249,19 @@ void WiLEDProto::setCallbackBeacon(void (*inCBBeacon)(uint16_t, uint32_t)){
   __handler_cb_beacon = inCBBeacon;
 }
 //
+void WiLEDProto::setCallbackSetIndividual(void (*inCBSetIndv)(WiLEDStatus)){
+  __handler_cb_set_individual = inCBSetIndv;
+}
+//
 ////////////////////////////////////////////////////////////////////////////////
 // END 'setCallbackTYPE' section
 ////////////////////////////////////////////////////////////////////////////////
 // BEGIN '__handleTypeTYPE' section
 //
 // These private member functions will be run when handleLastMessage() is called
-// and will run the callback functions defined in the 'setCallbackTYPE' section.
+// and will do whatever processing is needed by that message type, and possibly
+// run the callback functions defined in the 'setCallbackTYPE' section (if one
+// is defined).
 //
 /// Handle a 'Beacon' message
 void WiLEDProto::__handleTypeBeacon(){
@@ -267,6 +277,23 @@ void WiLEDProto::__handleTypeBeacon(){
   }
 }
 //
+// Handle a 'Set Individual' message
+void WiLEDProto::__handleTypeSetIndividual(){
+  // Extract the target address from the payload
+  uint16_t address;
+  address =  (__last_received_payload[1] << 8);
+  address += (__last_received_payload[2]);
+  // If this handler matches the target address, set it to the target level
+  if(address == __self_status.address){
+    // Extract the target level from the payload and set it
+    uint8_t level = __last_received_payload[0];
+    __self_status.level = level;
+    // If we have a callback available, call it
+    if(__handler_cb_set_individual != NULL){
+      __handler_cb_set_individual(__self_status);
+    }
+  }
+}
 ////////////////////////////////////////////////////////////////////////////////
 // END '__handleTypeTYPE' section
 ////////////////////////////////////////////////////////////////////////////////
@@ -320,6 +347,8 @@ void WiLEDProto::__setDestinationByte(uint16_t inDestination){
 // Set the specified "payload" byte in the output buffer
 void WiLEDProto::__setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValue){
   __outgoing_message_buffer[10+inPayloadOffset] = inPayloadValue;
+  // TODO: Use some cleverness here to count the number of payload bytes that
+  // have been set, so we always know the current total message length
 }
 
 

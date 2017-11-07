@@ -40,6 +40,9 @@
 
 #define WiLP_Beacon 0x01
 #define WiLP_Device_Status 0x02
+#define WiLP_Set_Individual 0x10
+#define WiLP_Set_Two_Individuals 0x11
+#define WiLP_Set_Three_Individuals 0x12
 
 #define WiLP_RETURN_SUCCESS 0
 #define WiLP_RETURN_ADDED_ADDRESS 100
@@ -85,8 +88,11 @@ class WiLEDProto {
 
     // Set the 'Beacon' callback, which requires an argument of:
     //   - uint16_t source address
-    //   - uint32_t beacon value (usuall uptime)
+    //   - uint32_t beacon value (usually uptime)
     void setCallbackBeacon(void (*inBeaconRecvCB)(uint16_t, uint32_t));
+    // Set the 'Set Individual' callback, which requires an argument of:
+    //   - struct WiLEDStatus
+    void setCallbackSetIndividual(void (*inBeaconRecvCB)(WiLEDStatus));
 
     uint8_t processMessage(uint8_t* inBuffer);
     void handleLastMessage();
@@ -125,6 +131,9 @@ class WiLEDProto {
 
     void (*__handler_cb_beacon)(uint16_t, uint32_t) = NULL;
     void __handleTypeBeacon();
+
+    void (*__handler_cb_set_individual)(WiLEDStatus) = NULL;
+    void __handleTypeSetIndividual();
 
     uint8_t __outgoing_message_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
     uint8_t __outgoing_message_length = 0;
