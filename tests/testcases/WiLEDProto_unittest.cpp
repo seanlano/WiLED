@@ -766,6 +766,30 @@ TEST_F(ProcessMessageTest, CorrectSetIndividualSend) {
   }
 }
 
+/// Check the class correctly sends and then can receive a Set Individual message
+TEST_F(ProcessMessageTest, CorrectSetIndividualSendReceive) {
+  // First, create a message in p1 with target output and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+
+  // Create buffer for sent message
+  uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+
+  // "Send" message and copy to buffer
+  p1.sendMessageSetIndividual(target_level, 0x2000); // p2 address is 0x2000
+  p1.copyToBuffer(p1_buffer);
+  // Store the Beacon message type number
+  const uint8_t beacon_type = WiLP_Set_Individual;
+
+  // Next, check the message from p1 is received properly by p2
+  ASSERT_EQ(p2.processMessage(p1_buffer), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p2.getLastReceivedResetCounter(), 1); //p1 was just initialised
+  EXPECT_EQ(p2.getLastReceivedMessageCounter(), 1); //p1 was just initialised
+  EXPECT_EQ(p2.getLastReceivedSource(), 0x1000); // p1 is 0x1000 address
+  EXPECT_EQ(p2.getLastReceivedDestination(), 0xFFFF); // Set Individual is broadcast
+  EXPECT_EQ(p2.getLastReceivedType(), beacon_type);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for "Set Individual" message type
 ////////////////////////////////////////////////////////////////////////////////
