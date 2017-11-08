@@ -234,6 +234,22 @@ uint8_t WiLEDProto::sendMessageBeacon(uint32_t inUptime){
   return WiLP_RETURN_SUCCESS;
 }
 //
+/// Send a 'Set Individual' message
+uint8_t WiLEDProto::sendMessageSetIndividual(uint8_t inOutput, uint16_t inAddress){
+  __setTypeByte(WiLP_Set_Individual);
+  __setDestinationByte(0xFFFF);
+
+  // Set target value
+  __setPayloadByte(0, inOutput);
+  // Use right-shift to break address into big-endian bytes
+  __setPayloadByte(1, (inAddress >> 8));
+  __setPayloadByte(2, (inAddress));
+
+  // Store the message length. 10 bytes header, 3 bytes payload, 2 bytes checksum
+  __outgoing_message_length = 15;
+
+  return WiLP_RETURN_SUCCESS;
+}
 ////////////////////////////////////////////////////////////////////////////////
 // END 'sendMessageTYPE' section
 ////////////////////////////////////////////////////////////////////////////////

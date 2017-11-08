@@ -99,6 +99,7 @@ class WiLEDProto {
 
     uint8_t sendMessageBeacon(uint32_t inUptime);
     uint8_t sendMessageDeviceStatus(uint8_t inOutput, uint8_t inGroup1, uint8_t inGroup2, uint8_t inGroup3, uint8_t inGroup4);
+    uint8_t sendMessageSetIndividual(uint8_t inOutput, uint16_t inAddress);
 
     void copyToBuffer(uint8_t * inBuffer);
 

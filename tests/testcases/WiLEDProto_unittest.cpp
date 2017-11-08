@@ -23,7 +23,7 @@
 #include "lib/CRC16/CRC16.h"
 #include "gtest/gtest.h"
 
-//#define DO_LONG_TESTS 1 // uncomment this to allow running long and slow tests
+// #define DO_LONG_TESTS // uncomment this to allow running long and slow tests
 
 // Blank "storage read" function to pass to the WiLP initialiser
 uint8_t BlankReader(uint16_t inAddress){
@@ -606,7 +606,7 @@ void handleSetIndividual(WiLEDStatus inStatus){
   // Flag that the callback has been run, to detect possible erroneous calls
   handleSetIndividual_hasrun = true;
 }
-TEST_F(ProcessMessageTest, CorrectSetIndividualCallback) {
+TEST_F(ProcessMessageTest, CorrectSetIndividualReceiveCallback) {
   // Reset the output
   p1_output = 0;
   handleSetIndividual_hasrun = false;
@@ -655,43 +655,43 @@ TEST_F(ProcessMessageTest, CorrectSetIndividualCallback) {
 }
 
 /// Check the class correctly ignores an invalid 'Set Individual' message
-TEST_F(ProcessMessageTest, InvalidSetIndividualCallback) {
+TEST_F(ProcessMessageTest, InvalidSetIndividualReceive) {
   // Reset the output
   p1_output = 0;
   handleSetIndividual_hasrun = false;
   // Create a valid message to pass to p1
-  uint8_t valid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  uint8_t invalid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
   // Set magic number to 0xAA (i.e. valid type)
-  valid_message[0] = 0xAA;
+  invalid_message[0] = 0xAA;
   // Set source address to 0x1111 (big endian)
-  valid_message[1] = 0x11;
-  valid_message[2] = 0x11;
+  invalid_message[1] = 0x11;
+  invalid_message[2] = 0x11;
   // Set destination address to 0xFFFF
-  valid_message[3] = 0xFF;
-  valid_message[4] = 0xFF;
+  invalid_message[3] = 0xFF;
+  invalid_message[4] = 0xFF;
   // Set reset counter to 1 (this should be the first message being sent)
-  valid_message[5] = 0x00;
-  valid_message[6] = 0x01;
+  invalid_message[5] = 0x00;
+  invalid_message[6] = 0x01;
   // Set message counter to 1 (this should be the first message being sent)
-  valid_message[7] = 0x00;
-  valid_message[8] = 0x01;
+  invalid_message[7] = 0x00;
+  invalid_message[8] = 0x01;
   // Set message type flag to WiLP_Set_Individual
   const uint8_t set_individual_type = WiLP_Set_Individual; // 0x10
-  valid_message[9] = set_individual_type;
+  invalid_message[9] = set_individual_type;
   // Set the 3 payload bytes to the output level and target address
   const uint8_t target_level = 0x64; // Decimal = 100
-  valid_message[10] = target_level;
+  invalid_message[10] = target_level;
   // Set target address to 0x1001, i.e. not the address of p1
-  valid_message[11] = 0x10;
-  valid_message[12] = 0x01;
+  invalid_message[11] = 0x10;
+  invalid_message[12] = 0x01;
   // CRC-CCITT (XModem) checksum (big-endian), 0x1C52
-  valid_message[13] = 0x1C;
-  valid_message[14] = 0x52;
+  invalid_message[13] = 0x1C;
+  invalid_message[14] = 0x52;
 
   // Configure p1 to use the callback defined above
   p1.setCallbackSetIndividual(&handleSetIndividual);
   // Next, check the message is received properly by p1
-  ASSERT_EQ(p1.processMessage(valid_message), WiLP_RETURN_SUCCESS);
+  ASSERT_EQ(p1.processMessage(invalid_message), WiLP_RETURN_SUCCESS);
   // Check the "getLast" calls are also valid
   EXPECT_EQ(p1.getLastReceivedResetCounter(), 1);
   EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1);
@@ -703,6 +703,67 @@ TEST_F(ProcessMessageTest, InvalidSetIndividualCallback) {
   // The callback should not be called at all
   EXPECT_FALSE(handleSetIndividual_hasrun);
   EXPECT_EQ(p1_output, 0);
+}
+
+/// Check the class correctly creates a 'Set Individual' message
+TEST_F(ProcessMessageTest, CorrectSetIndividualSend) {
+  // Create a buffer that contains the expected output
+  uint8_t expected_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Set magic number to 0xAA (i.e. valid type)
+  expected_message[0] = 0xAA;
+  // Set source address to 0x1000 (big endian)
+  expected_message[1] = 0x10;
+  expected_message[2] = 0x00;
+  // Set destination address to 0xFFFF
+  expected_message[3] = 0xFF;
+  expected_message[4] = 0xFF;
+  // Set reset counter to 1 (this should be the first message being sent)
+  expected_message[5] = 0x00;
+  expected_message[6] = 0x01;
+  // Set message counter to 1 (this should be the first message being sent)
+  expected_message[7] = 0x00;
+  expected_message[8] = 0x01;
+  // Set message type flag to WiLP_Set_Individual
+  const uint8_t set_individual_type = WiLP_Set_Individual; // 0x10
+  expected_message[9] = set_individual_type;
+  // Set the 3 payload bytes to the output level and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+  expected_message[10] = target_level;
+  // Set target address to 0x1000, i.e. address of p1
+  expected_message[11] = 0x20;
+  expected_message[12] = 0x00;
+  // CRC-CCITT (XModem) checksum (big-endian), 0x87E7
+  expected_message[13] = 0x87;
+  expected_message[14] = 0xE7;
+
+  // Send a message to 0x2000 with brightness of 100
+  p1.sendMessageSetIndividual(target_level, 0x2000);
+
+  // Create buffer for sent message and copy message into it
+  uint8_t p1_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+  p1.copyToBuffer(p1_buffer);
+
+  // Create a string-ified version of the two buffers, to print out if necessary
+  std::stringstream p1_buffer_str, expected_message_str;
+  p1_buffer_str << "p1 buffer is: ";
+  for (uint8_t i = 0; i < MAXIMUM_MESSAGE_LENGTH; i++){
+    p1_buffer_str << std::hex << std::setfill('0') << std::setw(2) <<
+      (unsigned short) p1_buffer[i] << " ";
+  }
+  p1_buffer_str << ". ";
+  expected_message_str << "expected buffer: ";
+  for (uint8_t i = 0; i < MAXIMUM_MESSAGE_LENGTH; i++){
+    expected_message_str << std::hex << std::setfill('0') << std::setw(2) <<
+      (unsigned short) expected_message[i] << " ";
+  }
+
+  // Check the sent buffer is what we expect it to be
+  for(uint8_t idx = 0; idx<MAXIMUM_MESSAGE_LENGTH; idx++)
+  {
+    // Do the test, and print the actual and expected buffers if not equal
+    ASSERT_EQ(p1_buffer[idx], expected_message[idx]) <<
+      ::testing::PrintToString(p1_buffer_str.str() + expected_message_str.str());
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
