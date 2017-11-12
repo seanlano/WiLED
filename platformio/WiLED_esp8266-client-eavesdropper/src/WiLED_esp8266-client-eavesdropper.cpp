@@ -66,6 +66,16 @@ void EEPROMcommitter(){
 }
 
 
+// Create a function to be called when a 'Set Individual' message is received
+void handleSetIndividual(WiLEDStatus inStatus){
+  Serial.println("Received 'Set Individual' message.");
+  Serial.print("  Target: ");
+  Serial.print(inStatus.address);
+  Serial.print(". Value: ");
+  Serial.println(inStatus.level);
+}
+
+
 WiLEDProto handler(0x1000, &EEPROMreader, &EEPROMwriter, &EEPROMcommitter);
 
 
@@ -140,6 +150,7 @@ void setup()
 */
 
   handler.initStorage();
+  handler.setCallbackSetIndividual(&handleSetIndividual);
 }
 
 uint32_t last_message = 0;
@@ -158,8 +169,6 @@ void loop()
     if (rf69.recv(buf, &len))
     {
       this_message = millis();
-      //Serial.print("got message: ");
-      //Serial.println((char*)buf);
 
       Serial.print("HEX: ");
       for(int idx=0; idx<20; idx++){
@@ -200,10 +209,13 @@ void loop()
       } else {
         Serial.println(" (OTHER ERROR)");
       }
-      //Serial.print("RSSI: ");
-      //Serial.println(rf69.lastRssi(), DEC);
+      Serial.print("RSSI: ");
+      Serial.println(rf69.lastRssi(), DEC);
       //Serial.print("Millis delta with last message: ");
       //Serial.println(this_message - last_message);
+      // Run the callback for the last received message
+      handler.handleLastMessage();
+
       Serial.println();
       last_message = this_message;
     }

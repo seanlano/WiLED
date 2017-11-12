@@ -75,6 +75,16 @@ void EEPROMcommitter(){
 }
 
 
+// Create a function to be called when a 'Set Individual' message is received
+void handleSetIndividual(WiLEDStatus inStatus){
+  Serial.println("Received 'Set Individual' message.");
+  Serial.print("  Target: ");
+  Serial.print(inStatus.address);
+  Serial.print(". Value: ");
+  Serial.println(inStatus.level);
+}
+
+
 WiLEDProto handler(CLIENT_ADDRESS, &EEPROMreader, &EEPROMwriter, &EEPROMcommitter);
 
 
@@ -151,8 +161,8 @@ void sendMessage()
       } else {
         Serial.println(" (OTHER ERROR)");
       }
-      //Serial.print("RSSI: ");
-      //Serial.println(rf69.lastRssi(), DEC);
+      Serial.print("RSSI: ");
+      Serial.println(rf69.lastRssi(), DEC);
       Serial.println();
     }
     else
@@ -244,6 +254,7 @@ void setup()
 */
 
   handler.initStorage();
+  handler.setCallbackSetIndividual(&handleSetIndividual);
 
   next_fire = millis() + 5000;
 }

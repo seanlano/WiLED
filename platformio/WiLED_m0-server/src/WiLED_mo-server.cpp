@@ -66,6 +66,16 @@ void FlashCommitter(){
 }
 
 
+// Create a function to be called when a 'Set Individual' message is received
+void handleSetIndividual(WiLEDStatus inStatus){
+  Serial1.println("Received 'Set Individual' message.");
+  Serial1.print("  Target: ");
+  Serial1.print(inStatus.address);
+  Serial1.print(". Value: ");
+  Serial1.println(inStatus.level);
+}
+
+
 WiLEDProto handler(0x0001, &FlashReader, &FlashWriter, &FlashCommitter);
 
 
@@ -96,9 +106,10 @@ void setup()
   rf69.setEncryptionKey(key);
   rf69.setCADTimeout(2);
 
-  Serial1.println("About to init flash storage");
+  // Serial1.println("About to init flash storage");
   handler.initStorage();
-  Serial1.println("Init complete");
+  handler.setCallbackSetIndividual(&handleSetIndividual);
+  // Serial1.println("Init complete");
 }
 
 
@@ -151,10 +162,13 @@ void loop()
       } else {
         Serial1.println(" (OTHER ERROR)");
       }
-      //Serial1.print("RSSI: ");
-      //Serial1.println(rf69.lastRssi(), DEC);
+      Serial1.print("RSSI: ");
+      Serial1.println(rf69.lastRssi(), DEC);
       //Serial1.print("Millis delta with last message: ");
       //Serial1.println(this_message - last_message);
+
+      // Run the callback for the last received message
+      handler.handleLastMessage();
       Serial1.println();
 
       // Send a reply back
