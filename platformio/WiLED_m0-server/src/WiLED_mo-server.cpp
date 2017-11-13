@@ -69,8 +69,8 @@ void FlashCommitter(){
 // Create a function to be called when a 'Set Individual' message is received
 void handleSetIndividual(WiLEDStatus inStatus){
   Serial1.println("Received 'Set Individual' message.");
-  Serial1.print("  Target: ");
-  Serial1.print(inStatus.address);
+  Serial1.print("  Target: 0x");
+  Serial1.print(inStatus.address, HEX);
   Serial1.print(". Value: ");
   Serial1.println(inStatus.level);
 }
@@ -162,7 +162,7 @@ void loop()
       } else {
         Serial1.println(" (OTHER ERROR)");
       }
-      Serial1.print("RSSI: ");
+      Serial1.print("  RSSI: ");
       Serial1.println(rf69.lastRssi(), DEC);
       //Serial1.print("Millis delta with last message: ");
       //Serial1.println(this_message - last_message);

@@ -78,8 +78,8 @@ void EEPROMcommitter(){
 // Create a function to be called when a 'Set Individual' message is received
 void handleSetIndividual(WiLEDStatus inStatus){
   Serial.println("Received 'Set Individual' message.");
-  Serial.print("  Target: ");
-  Serial.print(inStatus.address);
+  Serial.print("  Target: 0x");
+  Serial.print(inStatus.address, HEX);
   Serial.print(". Value: ");
   Serial.println(inStatus.level);
 }
@@ -96,7 +96,8 @@ void sendMessage()
   uint8_t data[MAXIMUM_MESSAGE_LENGTH];
   uint8_t len = sizeof(data);
 
-  msg_status = handler.sendMessageBeacon(millis());
+  // msg_status = handler.sendMessageBeacon(millis());
+  msg_status = handler.sendMessageSetIndividual(100, 0x1000);
   handler.copyToBuffer(data);
 
   // Send a message to rf69_server
@@ -161,7 +162,7 @@ void sendMessage()
       } else {
         Serial.println(" (OTHER ERROR)");
       }
-      Serial.print("RSSI: ");
+      Serial.print("  RSSI: ");
       Serial.println(rf69.lastRssi(), DEC);
       Serial.println();
     }
@@ -266,7 +267,7 @@ void loop()
 
   if(millis() > next_fire)
   {
-    next_fire = millis() + 500;
+    next_fire = millis() + 1000;
     sendMessage();
   }
 }

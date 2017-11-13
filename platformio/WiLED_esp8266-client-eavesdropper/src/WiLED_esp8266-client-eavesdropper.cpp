@@ -69,8 +69,8 @@ void EEPROMcommitter(){
 // Create a function to be called when a 'Set Individual' message is received
 void handleSetIndividual(WiLEDStatus inStatus){
   Serial.println("Received 'Set Individual' message.");
-  Serial.print("  Target: ");
-  Serial.print(inStatus.address);
+  Serial.print("  Target: 0x");
+  Serial.print(inStatus.address, HEX);
   Serial.print(". Value: ");
   Serial.println(inStatus.level);
 }
@@ -209,7 +209,7 @@ void loop()
       } else {
         Serial.println(" (OTHER ERROR)");
       }
-      Serial.print("RSSI: ");
+      Serial.print("  RSSI: ");
       Serial.println(rf69.lastRssi(), DEC);
       //Serial.print("Millis delta with last message: ");
       //Serial.println(this_message - last_message);
