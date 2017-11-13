@@ -123,6 +123,14 @@ uint8_t WiLEDProto::processMessage(uint8_t* inBuffer){
       __last_received_payload_length = 3;
       __process_callback = &WiLEDProto::__handleTypeSetIndividual;
       break;
+    case WiLP_Set_Two_Individuals:
+      __last_received_payload_length = 5;
+      __process_callback = &WiLEDProto::__handleTypeSetTwoIndividuals;
+      break;
+    case WiLP_Set_Three_Individuals:
+      __last_received_payload_length = 7;
+      __process_callback = &WiLEDProto::__handleTypeSetThreeIndividuals;
+      break;
     default:
       __last_received_payload_length = 0;
       __process_callback = NULL;
@@ -266,7 +274,7 @@ void WiLEDProto::setCallbackBeacon(void (*inCBBeacon)(uint16_t, uint32_t)){
 }
 //
 void WiLEDProto::setCallbackSetIndividual(void (*inCBSetIndv)(WiLEDStatus)){
-  __handler_cb_set_individual = inCBSetIndv;
+  __handler_cb_set_output = inCBSetIndv;
 }
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -305,8 +313,56 @@ void WiLEDProto::__handleTypeSetIndividual(){
     uint8_t level = __last_received_payload[0];
     __self_status.level = level;
     // If we have a callback available, call it
-    if(__handler_cb_set_individual != NULL){
-      __handler_cb_set_individual(__self_status);
+    if(__handler_cb_set_output != NULL){
+      __handler_cb_set_output(__self_status);
+    }
+  }
+}
+//
+// Handle a 'Set Two Individuals' messages
+void WiLEDProto::__handleTypeSetTwoIndividuals(){
+  // Extract the target addresses from the payload
+  uint16_t address1;
+  address1 =  (__last_received_payload[1] << 8);
+  address1 += (__last_received_payload[2]);
+  uint16_t address2;
+  address2 =  (__last_received_payload[3] << 8);
+  address2 += (__last_received_payload[4]);
+  // If this handler matches the target address, set it to the target level
+  if ((address1 == __self_status.address)
+   || (address2 == __self_status.address)){
+    // Extract the target level from the payload and set it
+    uint8_t level = __last_received_payload[0];
+    __self_status.level = level;
+    // If we have a callback available, call it
+    if(__handler_cb_set_output != NULL){
+      __handler_cb_set_output(__self_status);
+    }
+  }
+}
+//
+// Handle a 'Set Three Individuals' messages
+void WiLEDProto::__handleTypeSetThreeIndividuals(){
+  // Extract the target addresses from the payload
+  uint16_t address1;
+  address1 =  (__last_received_payload[1] << 8);
+  address1 += (__last_received_payload[2]);
+  uint16_t address2;
+  address2 =  (__last_received_payload[3] << 8);
+  address2 += (__last_received_payload[4]);
+  uint16_t address3;
+  address3 =  (__last_received_payload[5] << 8);
+  address3 += (__last_received_payload[6]);
+  // If this handler matches the target address, set it to the target level
+  if ((address1 == __self_status.address)
+   || (address2 == __self_status.address)
+   || (address3 == __self_status.address)){
+    // Extract the target level from the payload and set it
+    uint8_t level = __last_received_payload[0];
+    __self_status.level = level;
+    // If we have a callback available, call it
+    if(__handler_cb_set_output != NULL){
+      __handler_cb_set_output(__self_status);
     }
   }
 }

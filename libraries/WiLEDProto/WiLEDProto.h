@@ -93,6 +93,8 @@ class WiLEDProto {
     // Set the 'Set Individual' callback, which requires an argument of:
     //   - struct WiLEDStatus
     void setCallbackSetIndividual(void (*inBeaconRecvCB)(WiLEDStatus));
+    // NOTE: setCallbackSetIndividual will be used for 'Two Individuals' and
+    // 'Three Individuals' message types as well
 
     uint8_t processMessage(uint8_t* inBuffer);
     void handleLastMessage();
@@ -100,6 +102,8 @@ class WiLEDProto {
     uint8_t sendMessageBeacon(uint32_t inUptime);
     uint8_t sendMessageDeviceStatus(uint8_t inOutput, uint8_t inGroup1, uint8_t inGroup2, uint8_t inGroup3, uint8_t inGroup4);
     uint8_t sendMessageSetIndividual(uint8_t inOutput, uint16_t inAddress);
+    uint8_t sendMessageSetTwoIndividuals(uint8_t inOutput, uint16_t inAddress1, uint16_t inAddress2);
+    uint8_t sendMessageSetThreeIndividuals(uint8_t inOutput, uint16_t inAddress1, uint16_t inAddress2, uint16_t inAddress3);
 
     void copyToBuffer(uint8_t * inBuffer);
 
@@ -133,8 +137,11 @@ class WiLEDProto {
     void (*__handler_cb_beacon)(uint16_t, uint32_t) = NULL;
     void __handleTypeBeacon();
 
-    void (*__handler_cb_set_individual)(WiLEDStatus) = NULL;
+    // Use the 'Set Individual' callback for 'Set Two' and 'Set Three' as well
+    void (*__handler_cb_set_output)(WiLEDStatus) = NULL;
     void __handleTypeSetIndividual();
+    void __handleTypeSetTwoIndividuals();
+    void __handleTypeSetThreeIndividuals();
 
     uint8_t __outgoing_message_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
     uint8_t __outgoing_message_length = 0;
