@@ -911,6 +911,38 @@ TEST_F(ProcessMessageTest, InvalidSetTwoIndividualsReceive) {
   EXPECT_EQ(p1_output, 0);
 }
 
+/// Check the class correctly sends and then can receive a Set Two Individuals message
+TEST_F(ProcessMessageTest, CorrectSetTwoIndividualsSendReceive) {
+  // Reset the output
+  p1_output = 0;
+
+  // First, create a message in p2 with target output and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+
+  // Create buffer for sent message
+  uint8_t p2_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+
+  // "Send" message and copy to buffer
+  p2.sendMessageSetTwoIndividuals(target_level, 0x9876, 0x1000); // p1 address is 0x1000
+  p2.copyToBuffer(p2_buffer);
+  // Store the Beacon message type number
+  const uint8_t message_type = WiLP_Set_Two_Individuals;
+
+  // Configure p1 to use the callback defined above
+  p1.setCallbackSetIndividual(&handleSetTwoIndividuals);
+
+  // Next, check the message from p2 is received properly by p1
+  ASSERT_EQ(p1.processMessage(p2_buffer), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 1); //p2 was just initialised
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1); //p2 was just initialised
+  EXPECT_EQ(p1.getLastReceivedSource(), 0x2000); // p2 is 0x2000 address
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF); // Set Individual is broadcast
+  EXPECT_EQ(p1.getLastReceivedType(), message_type);
+  // Check the callback runs properly
+  p1.handleLastMessage(); // This should set p1_output to 0x64
+  EXPECT_EQ(p1_output, target_level);
+}
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for "Set Two Individuals" message type
 ////////////////////////////////////////////////////////////////////////////////
@@ -1037,6 +1069,38 @@ TEST_F(ProcessMessageTest, InvalidSetThreeIndividualsReceive) {
   EXPECT_EQ(p1_output, 0);
 }
 
+/// Check the class correctly sends and then can receive a Set Three Individuals message
+TEST_F(ProcessMessageTest, CorrectSetThreeIndividualsSendReceive) {
+  // Reset the output
+  p1_output = 0;
+
+  // First, create a message in p2 with target output and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+
+  // Create buffer for sent message
+  uint8_t p2_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+
+  // "Send" message and copy to buffer
+  p2.sendMessageSetThreeIndividuals(target_level, 0x9876, 0x4567, 0x1000); // p1 address is 0x1000
+  p2.copyToBuffer(p2_buffer);
+  // Store the Beacon message type number
+  const uint8_t message_type = WiLP_Set_Three_Individuals;
+
+  // Configure p1 to use the callback defined above
+  p1.setCallbackSetIndividual(&handleSetThreeIndividuals);
+
+  // Next, check the message from p2 is received properly by p1
+  ASSERT_EQ(p1.processMessage(p2_buffer), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 1); //p2 was just initialised
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1); //p2 was just initialised
+  EXPECT_EQ(p1.getLastReceivedSource(), 0x2000); // p2 is 0x2000 address
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF); // Set Individual is broadcast
+  EXPECT_EQ(p1.getLastReceivedType(), message_type);
+  // Check the callback runs properly
+  p1.handleLastMessage(); // This should set p1_output to 0x64
+  EXPECT_EQ(p1_output, target_level);
+}
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for "Set Three Individuals" message type
 ////////////////////////////////////////////////////////////////////////////////

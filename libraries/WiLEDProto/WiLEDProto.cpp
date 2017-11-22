@@ -258,6 +258,44 @@ uint8_t WiLEDProto::sendMessageSetIndividual(uint8_t inOutput, uint16_t inAddres
 
   return WiLP_RETURN_SUCCESS;
 }
+/// Send a 'Set Two Individuals' message
+uint8_t WiLEDProto::sendMessageSetTwoIndividuals(uint8_t inOutput, uint16_t inAddress1, uint16_t inAddress2){
+  _setTypeByte(WiLP_Set_Two_Individuals);
+  _setDestinationByte(0xFFFF);
+
+  // Set target value
+  _setPayloadByte(0, inOutput);
+  // Use right-shift to break address into big-endian bytes
+  _setPayloadByte(1, (inAddress1 >> 8));
+  _setPayloadByte(2, (inAddress1));
+  _setPayloadByte(3, (inAddress2 >> 8));
+  _setPayloadByte(4, (inAddress2));
+
+  // Store the message length. 10 bytes header, 5 bytes payload, 2 bytes checksum
+  _outgoing_message_length = 17;
+
+  return WiLP_RETURN_SUCCESS;
+}
+/// Send a 'Set Three Individuals' message
+uint8_t WiLEDProto::sendMessageSetThreeIndividuals(uint8_t inOutput, uint16_t inAddress1, uint16_t inAddress2, uint16_t inAddress3){
+  _setTypeByte(WiLP_Set_Three_Individuals);
+  _setDestinationByte(0xFFFF);
+
+  // Set target value
+  _setPayloadByte(0, inOutput);
+  // Use right-shift to break address into big-endian bytes
+  _setPayloadByte(1, (inAddress1 >> 8));
+  _setPayloadByte(2, (inAddress1));
+  _setPayloadByte(3, (inAddress2 >> 8));
+  _setPayloadByte(4, (inAddress2));
+  _setPayloadByte(5, (inAddress3 >> 8));
+  _setPayloadByte(6, (inAddress3));
+
+  // Store the message length. 10 bytes header, 7 bytes payload, 2 bytes checksum
+  _outgoing_message_length = 19;
+
+  return WiLP_RETURN_SUCCESS;
+}
 ////////////////////////////////////////////////////////////////////////////////
 // END 'sendMessageTYPE' section
 ////////////////////////////////////////////////////////////////////////////////
