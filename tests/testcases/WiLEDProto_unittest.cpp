@@ -655,11 +655,12 @@ TEST_F(ProcessMessageTest, CorrectSetIndividualReceiveCallback) {
 }
 
 /// Check the class correctly ignores an invalid 'Set Individual' message
+/// i.e. this test intentionally has a target address of 0x1001, not 0x1000
 TEST_F(ProcessMessageTest, InvalidSetIndividualReceive) {
   // Reset the output
   p1_output = 0;
   handleSetIndividual_hasrun = false;
-  // Create a valid message to pass to p1
+  // Create an invalid message to pass to p1
   uint8_t invalid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
   // Set magic number to 0xAA (i.e. valid type)
   invalid_message[0] = 0xAA;
@@ -792,4 +793,250 @@ TEST_F(ProcessMessageTest, CorrectSetIndividualSendReceive) {
 
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for "Set Individual" message type
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN tests for "Set Two Individuals" message type, 0x11
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check the class correctly handles a valid 'Set Two Individuals' message
+uint8_t handleSetTwoIndividual_hasrun = false;
+void handleSetTwoIndividuals(WiLEDStatus inStatus){
+  // Set the 'output' to the given level
+  p1_output = inStatus.level;
+  // Flag that the callback has been run, to detect possible erroneous calls
+  handleSetTwoIndividual_hasrun = true;
+}
+TEST_F(ProcessMessageTest, CorrectSetTwoIndividualsReceiveCallback) {
+  // Reset the output
+  p1_output = 0;
+  handleSetTwoIndividual_hasrun = false;
+  // Create a valid message to pass to p1
+  uint8_t valid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Set magic number to 0xAA (i.e. valid type)
+  valid_message[0] = 0xAA;
+  // Set source address to 0x1111 (big endian)
+  valid_message[1] = 0x11;
+  valid_message[2] = 0x11;
+  // Set destination address to 0xFFFF
+  valid_message[3] = 0xFF;
+  valid_message[4] = 0xFF;
+  // Set reset counter to 1 (this should be the first message being sent)
+  valid_message[5] = 0x00;
+  valid_message[6] = 0x01;
+  // Set message counter to 1 (this should be the first message being sent)
+  valid_message[7] = 0x00;
+  valid_message[8] = 0x01;
+  // Set message type flag to WiLP_Set_Individual
+  const uint8_t set_individuals_type = WiLP_Set_Two_Individuals; // 0x11
+  valid_message[9] = set_individuals_type;
+  // Set the 5 payload bytes to the output level and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+  valid_message[10] = target_level;
+  // Set target address 1 to 0x2000, i.e. address of p2
+  valid_message[11] = 0x20;
+  valid_message[12] = 0x00;
+  // Set target address 2 to 0x1000, i.e. address of p1
+  valid_message[13] = 0x10;
+  valid_message[14] = 0x00;
+  // CRC-CCITT (XModem) checksum (big-endian), 0x61A3
+  valid_message[15] = 0x61;
+  valid_message[16] = 0xA3;
+
+  // Configure p1 to use the callback defined above
+  p1.setCallbackSetIndividual(&handleSetTwoIndividuals);
+  // Next, check the message is received properly by p1
+  ASSERT_EQ(p1.processMessage(valid_message), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedSource(), 0x1111); // manually set to 0x1111
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF); // Set Individual is a broadcast
+  EXPECT_EQ(p1.getLastReceivedType(), set_individuals_type);
+  // Check the callback runs properly
+  p1.handleLastMessage(); // This should set p1_output to 0x64
+  EXPECT_EQ(p1_output, target_level);
+}
+
+/// Check the class correctly ignores an invalid 'Set Individual' message
+/// i.e. this test intentionally has a target address of 0x1001, not 0x1000
+TEST_F(ProcessMessageTest, InvalidSetTwoIndividualsReceive) {
+  // Reset the output
+  p1_output = 0;
+  handleSetTwoIndividual_hasrun = false;
+  // Create an invalid message to pass to p1
+  uint8_t invalid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Set magic number to 0xAA (i.e. valid type)
+  invalid_message[0] = 0xAA;
+  // Set source address to 0x1111 (big endian)
+  invalid_message[1] = 0x11;
+  invalid_message[2] = 0x11;
+  // Set destination address to 0xFFFF
+  invalid_message[3] = 0xFF;
+  invalid_message[4] = 0xFF;
+  // Set reset counter to 1 (this should be the first message being sent)
+  invalid_message[5] = 0x00;
+  invalid_message[6] = 0x01;
+  // Set message counter to 1 (this should be the first message being sent)
+  invalid_message[7] = 0x00;
+  invalid_message[8] = 0x01;
+  // Set message type flag to WiLP_Set_Individual
+  const uint8_t set_individuals_type = WiLP_Set_Two_Individuals; // 0x11
+  invalid_message[9] = set_individuals_type;
+  // Set the 5 payload bytes to the output level and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+  invalid_message[10] = target_level;
+  // Set target address 1 to 0x1001, i.e. not the address of p1
+  invalid_message[11] = 0x10;
+  invalid_message[12] = 0x01;
+  // Set target address 2 to 0x5432, i.e. not the address of p1
+  invalid_message[13] = 0x54;
+  invalid_message[14] = 0x32;
+  // CRC-CCITT (XModem) checksum (big-endian), 0xAD63
+  invalid_message[15] = 0xAD;
+  invalid_message[16] = 0x63;
+
+  // Configure p1 to use the callback defined above
+  p1.setCallbackSetIndividual(&handleSetTwoIndividuals);
+  // Next, check the message is received properly by p1
+  ASSERT_EQ(p1.processMessage(invalid_message), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedSource(), 0x1111); // manually set to 0x1111
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF); // Set Individual is a broadcast
+  EXPECT_EQ(p1.getLastReceivedType(), set_individuals_type);
+  // Check the callback runs properly
+  p1.handleLastMessage();
+  // The callback should not be called at all
+  EXPECT_FALSE(handleSetTwoIndividual_hasrun);
+  EXPECT_EQ(p1_output, 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// END tests for "Set Two Individuals" message type
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN tests for "Set Three Individuals" message type, 0x12
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check the class correctly handles a valid 'Set Three Individuals' message
+uint8_t handleSetThreeIndividual_hasrun = false;
+void handleSetThreeIndividuals(WiLEDStatus inStatus){
+  // Set the 'output' to the given level
+  p1_output = inStatus.level;
+  // Flag that the callback has been run, to detect possible erroneous calls
+  handleSetThreeIndividual_hasrun = true;
+}
+TEST_F(ProcessMessageTest, CorrectSetThreeIndividualsReceiveCallback) {
+  // Reset the output
+  p1_output = 0;
+  handleSetThreeIndividual_hasrun = false;
+  // Create a valid message to pass to p1
+  uint8_t valid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Set magic number to 0xAA (i.e. valid type)
+  valid_message[0] = 0xAA;
+  // Set source address to 0x1111 (big endian)
+  valid_message[1] = 0x11;
+  valid_message[2] = 0x11;
+  // Set destination address to 0xFFFF
+  valid_message[3] = 0xFF;
+  valid_message[4] = 0xFF;
+  // Set reset counter to 1 (this should be the first message being sent)
+  valid_message[5] = 0x00;
+  valid_message[6] = 0x01;
+  // Set message counter to 1 (this should be the first message being sent)
+  valid_message[7] = 0x00;
+  valid_message[8] = 0x01;
+  // Set message type flag to WiLP_Set_Individual
+  const uint8_t set_individuals_type = WiLP_Set_Three_Individuals; // 0x12
+  valid_message[9] = set_individuals_type;
+  // Set the 7 payload bytes to the output level and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+  valid_message[10] = target_level;
+  // Set target address 1 to 0x2000, i.e. address of p2
+  valid_message[11] = 0x20;
+  valid_message[12] = 0x00;
+  // Set target address 2 to 0x3000, i.e. address of p3
+  valid_message[13] = 0x30;
+  valid_message[14] = 0x00;
+  // Set target address 3 to 0x1000, i.e. address of p1
+  valid_message[15] = 0x10;
+  valid_message[16] = 0x00;
+  // CRC-CCITT (XModem) checksum (big-endian), 0x41DA
+  valid_message[17] = 0x41;
+  valid_message[18] = 0xDA;
+
+  // Configure p1 to use the callback defined above
+  p1.setCallbackSetIndividual(&handleSetThreeIndividuals);
+  // Next, check the message is received properly by p1
+  ASSERT_EQ(p1.processMessage(valid_message), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedSource(), 0x1111); // manually set to 0x1111
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF); // Set Individual is a broadcast
+  EXPECT_EQ(p1.getLastReceivedType(), set_individuals_type);
+  // Check the callback runs properly
+  p1.handleLastMessage(); // This should set p1_output to 0x64
+  EXPECT_EQ(p1_output, target_level);
+}
+
+/// Check the class correctly ignores an invalid 'Set Three Individuals' message
+/// i.e. this test intentionally has a target address of 0x1001, not 0x1000
+TEST_F(ProcessMessageTest, InvalidSetThreeIndividualsReceive) {
+  // Reset the output
+  p1_output = 0;
+  handleSetThreeIndividual_hasrun = false;
+  // Create an invalid message to pass to p1
+  uint8_t invalid_message[MAXIMUM_MESSAGE_LENGTH] = {0};
+  // Set magic number to 0xAA (i.e. valid type)
+  invalid_message[0] = 0xAA;
+  // Set source address to 0x1111 (big endian)
+  invalid_message[1] = 0x11;
+  invalid_message[2] = 0x11;
+  // Set destination address to 0xFFFF
+  invalid_message[3] = 0xFF;
+  invalid_message[4] = 0xFF;
+  // Set reset counter to 1 (this should be the first message being sent)
+  invalid_message[5] = 0x00;
+  invalid_message[6] = 0x01;
+  // Set message counter to 1 (this should be the first message being sent)
+  invalid_message[7] = 0x00;
+  invalid_message[8] = 0x01;
+  // Set message type flag to WiLP_Set_Individual
+  const uint8_t set_individuals_type = WiLP_Set_Three_Individuals; // 0x12
+  invalid_message[9] = set_individuals_type;
+  // Set the 5 payload bytes to the output level and target address
+  const uint8_t target_level = 0x64; // Decimal = 100
+  invalid_message[10] = target_level;
+  // Set target address 1 to 0x1001, i.e. not the address of p1
+  invalid_message[11] = 0x10;
+  invalid_message[12] = 0x01;
+  // Set target address 2 to 0x5432, i.e. not the address of p1
+  invalid_message[13] = 0x54;
+  invalid_message[14] = 0x32;
+  // Set target address 3 to 0x3000, i.e. address of p3
+  invalid_message[15] = 0x30;
+  invalid_message[16] = 0x00;
+  // CRC-CCITT (XModem) checksum (big-endian), 0xFA07
+  invalid_message[17] = 0xFA;
+  invalid_message[18] = 0x07;
+
+  // Configure p1 to use the callback defined above
+  p1.setCallbackSetIndividual(&handleSetThreeIndividuals);
+  // Next, check the message is received properly by p1
+  ASSERT_EQ(p1.processMessage(invalid_message), WiLP_RETURN_SUCCESS);
+  // Check the "getLast" calls are also valid
+  EXPECT_EQ(p1.getLastReceivedResetCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedMessageCounter(), 1);
+  EXPECT_EQ(p1.getLastReceivedSource(), 0x1111); // manually set to 0x1111
+  EXPECT_EQ(p1.getLastReceivedDestination(), 0xFFFF); // Set Individual is a broadcast
+  EXPECT_EQ(p1.getLastReceivedType(), set_individuals_type);
+  // Check the callback runs properly
+  p1.handleLastMessage();
+  // The callback should not be called at all
+  EXPECT_FALSE(handleSetThreeIndividual_hasrun);
+  EXPECT_EQ(p1_output, 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// END tests for "Set Three Individuals" message type
 ////////////////////////////////////////////////////////////////////////////////
