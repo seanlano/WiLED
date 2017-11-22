@@ -17,8 +17,12 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
-* NOTE: At this early stage, this code does not do very much - it is
-* heavily under development!
+*
+* This example sketch takes the WiLEDProto class, and uses it to create WiLP
+* messages in a buffer. This buffer is then transmitted through an RF-69 radio
+* to a similar device running a server sketch, which will also send back a
+* reply message. Both client and server print out various stats about each
+* message received (via serial).
 */
 
 #include <ESP8266WiFi.h>
@@ -96,13 +100,10 @@ void sendMessage()
   uint8_t data[MAXIMUM_MESSAGE_LENGTH];
   uint8_t len = sizeof(data);
 
-  // msg_status = handler.sendMessageBeacon(millis());
-  msg_status = handler.sendMessageSetIndividual(100, 0x1000);
+  msg_status = handler.sendMessageBeacon(millis());
   handler.copyToBuffer(data);
 
-  // Send a message to rf69_server
-
-  // Send a message to manager_server
+  // Send a message to server
   rf69.waitCAD();
   rf69.send(data, MAXIMUM_MESSAGE_LENGTH);
   rf69.waitPacketSent();
@@ -221,7 +222,7 @@ void setup()
   digitalPinToInterrupt(RFM69_IRQ);
 
 
-  Serial.println(F("Feather ESP8266 RFM69 TX Datagram Test! (with rotary encoder)"));
+  Serial.println(F("Feather ESP8266 RFM69 TX Datagram Test! (with sequential ping)"));
   Serial.println();
 
   if (!rf69.init())
