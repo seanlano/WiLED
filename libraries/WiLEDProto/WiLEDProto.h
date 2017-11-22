@@ -57,14 +57,14 @@
 #define WiLP_RETURN_NOT_INIT 3
 
 // Arrange the storage locations of the arrays.
-// __address_array is stored at location 0
+// _address_array is stored at location 0
 #define STORAGE_ADDRESSES_LOCATION (0)
-// __reset_counter_array is stored immediately following __address_array
-#define STORAGE_RESET_LOCATION (STORAGE_ADDRESSES_LOCATION + sizeof(__address_array))
-// __count_addresses is then stored after __reset_counter_array
-#define STORAGE_COUNT_LOCATION (STORAGE_RESET_LOCATION + sizeof(__reset_counter_array))
-// __self_reset_counter is then stored after __count_addresses
-#define STORAGE_SELF_RESET_LOCATION (STORAGE_COUNT_LOCATION + sizeof(__count_addresses))
+// _reset_counter_array is stored immediately following _address_array
+#define STORAGE_RESET_LOCATION (STORAGE_ADDRESSES_LOCATION + sizeof(_address_array))
+// _count_addresses is then stored after _reset_counter_array
+#define STORAGE_COUNT_LOCATION (STORAGE_RESET_LOCATION + sizeof(_reset_counter_array))
+// _self_reset_counter is then stored after _count_addresses
+#define STORAGE_SELF_RESET_LOCATION (STORAGE_COUNT_LOCATION + sizeof(_count_addresses))
 
 
 // Define a struct for storing and passing WiLED device information
@@ -115,63 +115,63 @@ class WiLEDProto {
     uint8_t getLastReceivedMessageCounterValidation();
 
   protected:
-    uint16_t __address = 0;
-    uint16_t __self_reset_counter = 0;
-    uint16_t __self_message_counter = 0;
+    uint16_t _address = 0;
+    uint16_t _self_reset_counter = 0;
+    uint16_t _self_message_counter = 0;
 
-    uint8_t __last_was_valid = false;
-    uint8_t __last_received_type = 0x00;
-    uint16_t __last_received_source = 0;
-    uint16_t __last_received_destination = 0;
-    uint16_t __last_received_reset_counter = 0;
-    uint16_t __last_received_message_counter = 0;
-    uint8_t __last_received_message_counter_validation = 0;
-    uint8_t __last_received_payload_length = 0;
-    uint8_t __last_received_payload[MAXIMUM_PAYLOAD_LENGTH] = {0};
+    uint8_t _last_was_valid = false;
+    uint8_t _last_received_type = 0x00;
+    uint16_t _last_received_source = 0;
+    uint16_t _last_received_destination = 0;
+    uint16_t _last_received_reset_counter = 0;
+    uint16_t _last_received_message_counter = 0;
+    uint8_t _last_received_message_counter_validation = 0;
+    uint8_t _last_received_payload_length = 0;
+    uint8_t _last_received_payload[MAXIMUM_PAYLOAD_LENGTH] = {0};
 
     // Declare a "void-returning member-function of WiLEDProto" to be a type
     typedef void (WiLEDProto::*WiLEDMemFn)(void);
-    WiLEDMemFn __process_callback = NULL;
+    WiLEDMemFn _process_callback = NULL;
 
 
-    void (*__handler_cb_beacon)(uint16_t, uint32_t) = NULL;
-    void __handleTypeBeacon();
+    void (*_handler_cb_beacon)(uint16_t, uint32_t) = NULL;
+    void _handleTypeBeacon();
 
     // Use the 'Set Individual' callback for 'Set Two' and 'Set Three' as well
-    void (*__handler_cb_set_output)(WiLEDStatus) = NULL;
-    void __handleTypeSetIndividual();
-    void __handleTypeSetTwoIndividuals();
-    void __handleTypeSetThreeIndividuals();
+    void (*_handler_cb_set_output)(WiLEDStatus) = NULL;
+    void _handleTypeSetIndividual();
+    void _handleTypeSetTwoIndividuals();
+    void _handleTypeSetThreeIndividuals();
 
-    uint8_t __outgoing_message_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
-    uint8_t __outgoing_message_length = 0;
+    uint8_t _outgoing_message_buffer[MAXIMUM_MESSAGE_LENGTH] = {0};
+    uint8_t _outgoing_message_length = 0;
 
-    void __setTypeByte(uint8_t inType);
-    void __setDestinationByte(uint16_t inDestination);
-    void __setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValue);
+    void _setTypeByte(uint8_t inType);
+    void _setDestinationByte(uint16_t inDestination);
+    void _setPayloadByte(uint8_t inPayloadOffset, uint8_t inPayloadValue);
 
-    void __wipeLastReceived();
+    void _wipeLastReceived();
 
-    uint8_t __checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inResetCounter, uint16_t inMessageCounter);
+    uint8_t _checkAndUpdateMessageCounter(uint16_t inAddress, uint16_t inResetCounter, uint16_t inMessageCounter);
 
     // Store callback functions for storage read and write (usually EEPROM)
-    void (*__storage_write_callback)(uint16_t, uint8_t) = NULL;
-    uint8_t (*__storage_read_callback)(uint16_t) = NULL;
-    void (*__storage_commit_callback)(void) = NULL;
+    void (*_storage_write_callback)(uint16_t, uint8_t) = NULL;
+    uint8_t (*_storage_read_callback)(uint16_t) = NULL;
+    void (*_storage_commit_callback)(void) = NULL;
 
     // Store a count of how many unique addresses we have seen
-    uint16_t __count_addresses = 0;
+    uint16_t _count_addresses = 0;
 
-    uint8_t __restoreFromStorage_uint16t(uint16_t* outArray, uint16_t inStorageOffset, uint16_t inLength);
-    uint8_t __addToStorage_uint16t(uint16_t* inArray, uint16_t inStorageOffset, uint16_t inLength);
+    uint8_t _restoreFromStorage_uint16t(uint16_t* outArray, uint16_t inStorageOffset, uint16_t inLength);
+    uint8_t _addToStorage_uint16t(uint16_t* inArray, uint16_t inStorageOffset, uint16_t inLength);
 
     // Store (linked) arrays to track the other nodes' states, initialise to zero
-    uint16_t __address_array[MAXIMUM_STORED_ADDRESSES] = {0};
-    uint16_t __reset_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
-    uint16_t __message_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
+    uint16_t _address_array[MAXIMUM_STORED_ADDRESSES] = {0};
+    uint16_t _reset_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
+    uint16_t _message_counter_array[MAXIMUM_STORED_ADDRESSES] = {0};
 
     // Store a struct of stuff related to this handler's current state
-    WiLEDStatus __self_status;
+    WiLEDStatus _self_status;
 };
 
 #endif
