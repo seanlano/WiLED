@@ -11,6 +11,11 @@ _debounceDelay=50
 Version 22-5-2013
 Added longPress, doubleClick
 
+This version modified by Sean Lanigan, for use in the WiLED project.
+See Git revision control history for changes made from the original.
+In partiular, edits have been made to support reading from an analogue input.
+
+
                         _______________________      _false
                        |                       |   || |
  input                 |                       || ||| |
@@ -55,12 +60,38 @@ Switch::Switch(byte _pin, byte PinMode, bool polarity, int debounceDelay, int lo
 pin(_pin), polarity(polarity), debounceDelay(debounceDelay), longPressDelay(longPressDelay), doubleClickDelay(doubleClickDelay)
 { pinMode(pin, PinMode);
   _switchedTime = millis();
-  level = digitalRead(pin);
+  level = read_input();
+}
+
+bool Switch::read_input()
+{
+  // Use digitalRead if analogue mode is not activated
+  #ifndef ANALOG_MODE
+    return digitalRead(pin);
+  #else
+  // Otherwise compare analogue value to the threshold
+    uint16_t val = analogRead(pin);
+    #if ANALOG_MODE == 1
+      // i.e. trigger if value goes above threshold
+      if(val > ANALOG_THRESH){
+        return true;
+      } else {
+        return false;
+      }
+    #else
+      // i.e. trigger if value goes below threshold
+      if(val < ANALOG_THRESH){
+        return true;
+      } else {
+        return false;
+      }
+    #endif
+  #endif
 }
 
 bool Switch::poll()
 { _longPress = _doubleClick = false;
-  bool newlevel = digitalRead(pin);
+  bool newlevel = read_input();
 
   if(!_longPressLatch)
   { _longPress = on() && ((long)(millis() - pushedTime) > longPressDelay); // true just one time between polls

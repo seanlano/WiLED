@@ -5,10 +5,21 @@ This program is free software: you can redistribute it and/or modify it under th
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License at http://www.gnu.org/licenses .
+
+This version modified by Sean Lanigan, for use in the WiLED project.
+See Git revision control history for changes made from the original.
+In partiular, edits have been made to support reading from an analogue input.
+
+
 */
 
 #ifndef SWITCH_H
 #define SWITCH_H
+
+// Uncomment this to use analogue mode.
+// 1 is "normally high" and 0 is "normally low"
+#define ANALOG_MODE 1
+#define ANALOG_THRESH 512 // Set this to be the threshold analogue read value
 
 typedef void (*switchCallback_t)(void*);
 
@@ -38,6 +49,9 @@ protected:
   const int debounceDelay, longPressDelay, doubleClickDelay;
   const bool polarity;
   bool level, _switched, _longPress, _longPressLatch, _doubleClick;
+
+  // Internal function for using either analogue or digital mode
+  bool read_input();
 
   // Event callbacks
   switchCallback_t _pushedCallback = nullptr;
