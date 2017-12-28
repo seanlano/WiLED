@@ -40,6 +40,7 @@
 #include <RunMode.h>
 #include <Rotary.h>
 #include <WiLEDProto.h>
+#include <Switch.h>
 
 
 #define RFM69_CS      16
@@ -79,6 +80,9 @@ RunMode dial_mode = RunMode(OUT_IND);
 
 // Initialise rotary encoder
 Rotary dial_rotary = Rotary(ROTARY_B, ROTARY_A);
+
+// Initialise push button of rotary encoder on the analogue input
+Switch dial_button = Switch(A0, INPUT, LOW, 50, 750, 250);
 
 
 // Create a function to handle the rotary encoder
@@ -234,8 +238,50 @@ void sendMessage()
   }
 }
 
+bool ignoreNextRelease = false;
 
-uint32_t next_fire = 0;
+void buttonPushCallback(void* ignore){
+  // Define a callback to run when the button is pressed
+  // Serial.println("Short press");
+  if(dial_mode.getModeNormal()){
+    if(!led1.getPowerOn()){
+      // LED is off, so turn it on
+      led1.setDimStep(5);
+      ignoreNextRelease = true;
+    }
+  } else {
+    dial_mode.select();
+    dial_mode.setDoubleFlash();
+  }
+}
+
+void buttonReleaseCallback(void* ignore){
+  // Define a callback to run when the button is released
+  // Serial.println("Button released");
+  if(dial_mode.getModeNormal()){
+    if(!ignoreNextRelease && led1.getPowerOn()){
+      led1.setDimStep(0);
+    }
+  }
+  ignoreNextRelease = false;
+}
+
+void buttonLongCallback(void* ignore){
+  // Define a callback for long press
+  // Serial.println("Long press");
+  if(led1.getPowerOn() && ignoreNextRelease){
+    // LED will be on because of first button press event before triggering long press
+    led1.setDimStep(0);
+    dial_mode.setNormal(1);
+    dial_mode.setBlink();
+  } else if(led1.getPowerOn() && !ignoreNextRelease){
+    //Serial.println("Start a long fade out");
+    dial_mode.setDoubleFlash(); // Double-flash to indicate timer started
+    led1.setAutoOffTimer(30000); // Turn off in 30 seconds
+    ignoreNextRelease = true;
+  }
+}
+
 
 void setup()
 {
@@ -326,6 +372,11 @@ void setup()
   // Attach LED status callback
   led1.setStatusCallback(&LEDStatusUpdate);
 
+  // Attach the push button callback
+  dial_button.setPushedCallback(&buttonPushCallback);
+  dial_button.setLongPressCallback(&buttonLongCallback);
+  dial_button.setReleasedCallback(&buttonReleaseCallback);
+
   // Turn off the LEDs, setup is done
   analogWrite(OUT_IND, LED_IND_LOW);
   analogWrite(OUT_LED, 0);
@@ -333,7 +384,7 @@ void setup()
   dial_mode.setNormal(1);
 }
 
-
+uint16_t poll_ctr = 0;
 void loop()
 {
   ArduinoOTA.handle();
@@ -341,5 +392,11 @@ void loop()
 
   led1.process();
   dial_mode.update();
+  
+  // Without the modulo check, the poll operation locks up the MCU
+  if(poll_ctr % 500 == 0){
+    dial_button.poll();
+  }
+  poll_ctr++;
 
 }
