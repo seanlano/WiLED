@@ -27,7 +27,7 @@ The current system plan is to use an RFM-69 radio to connect the lighting device
 - Ability to control multiple light outputs with a single switch or dial, through groups 
 - Separation of lighting output device and control input device, to allow for flexible reconfiguration 
   - Option to have hardwired controller so lighting is usable even with failure in radio network 
-- Tested performance metrics for switching latency tm
+- Tested performance metrics for switching latency 
 - Bindings for OpenHAB 
 
 ## Contributors and thanks 
@@ -36,7 +36,9 @@ The Rotary library for Arduino, by Ben Buxton, has been used and the files `Rota
 
 Additionally, the wonderful RadioHead library from Mike McCauley and AirSpayce has been used via an inclusion through PlatformIO. [See here for the homepage](http://www.airspayce.com/mikem/arduino/RadioHead/index.html). It is GPLv2 licensed (not clear if this is GPLv2 _only_ or GPLv2+). 
 
-For CRC16 checksum calculation, a function based on work by Vincenzo Mennella has been created. [See here for the original](https://github.com/vinmenn/Crc16/blob/aed958375acfd6edfcddbfcb3a42a861c77bb697/Crc16.h). His work is [MIT licensed](https://github.com/vinmenn/Crc16/blob/aed958375acfd6edfcddbfcb3a42a861c77bb697/LICENSE), the new version as part of WiLED is licensed under the GPL like the rest of this project. 
+For CRC16 checksum calculation, a function based on work by Vincenzo Mennella has been created. [See here for the original](https://github.com/vinmenn/Crc16/blob/aed958375acfd6edfcddbfcb3a42a861c77bb697/Crc16.h). His work is [MIT licensed](https://github.com/vinmenn/Crc16/blob/aed958375acfd6edfcddbfcb3a42a861c77bb697/LICENSE). The new version,  `CRC16.cpp` and `CRC16.h`, as part of WiLED, is licensed under the GPL like the rest of this project. 
+
+The Switch library from Dean Blackketter has also been used and included in this project. [See here for the original source](https://github.com/blackketter/Switch). It is GPLv3 licensed. Some changes have been made to `Switch.cpp` and `Switch.h` compared to the original, in particular to allow the class to read from an analogue input and compare the reading to a threshold to determine switch state. 
 
 For unit tests, the [Google Test framework](https://github.com/google/googletest) is used. Necessary files are directly included in this repository, so that it is easy to compile and run unit tests without needing to separately download the Google Test source. Google Test is licensed under the [New BSD License](https://github.com/google/googletest/blob/master/googletest/LICENSE). 
 
