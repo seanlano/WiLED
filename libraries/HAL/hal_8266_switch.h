@@ -1,6 +1,6 @@
 /*
-* hal_8266_led.h
-* Hardware Abstraction for ESP8266, providing LED access 
+* hal_8266_switch.h
+* Hardware Abstraction for ESP8266, providing switch/button access 
 * 
 * Part of the "WiLED" project, https://github.com/seanlano/WiLED
 * A C++ class for controlling a PWM dimmable LED on an Arduino.
@@ -20,29 +20,27 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hal_8266_led.h"
+// The idea is that only one #include will provide each HAL part 
+#ifndef HAL_SWITCH_H
+#define HAL_SWITCH_H
 
-hal_LED::hal_LED(uint8_t inPin)
-{
-    _led_pin = inPin;
-}
+// This ESP8266 HAL depends on the Arduino framework
+#include <Arduino.h>
 
-uint16_t hal_LED::getMaxPWM()
+class hal_Switch
 {
-    return 1024;
-}
+    public:
+    // Constructor
+    hal_Switch(uint8_t inPin);
 
-void hal_LED::setPWM(uint16_t inValue)
-{
-    if(!_config_done)
-    {
-        setup();   
-    }
-    analogWrite(_led_pin, inValue);
-}
+    // Get the state of the pins
+    bool getPin();
 
-void hal_LED::setup()
-{
-    _config_done = true;
-    pinMode(_led_pin, OUTPUT);
-}
+    private:
+    uint8_t _switch_pin;
+    bool _config_done = false;
+
+    void setup();
+};
+
+#endif

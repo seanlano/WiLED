@@ -20,29 +20,36 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hal_8266_led.h"
+#include "hal_8266_encoder.h"
 
-hal_LED::hal_LED(uint8_t inPin)
+hal_Encoder::hal_Encoder(uint8_t inPinA, uint8_t inPinB)
 {
-    _led_pin = inPin;
+    _encoder_pin_A = inPinA;
+    _encoder_pin_B = inPinB;
 }
 
-uint16_t hal_LED::getMaxPWM()
-{
-    return 1024;
-}
-
-void hal_LED::setPWM(uint16_t inValue)
+bool hal_Encoder::getPinA()
 {
     if(!_config_done)
     {
         setup();   
     }
-    analogWrite(_led_pin, inValue);
+    return digitalRead(_encoder_pin_A);
 }
 
-void hal_LED::setup()
+bool hal_Encoder::getPinB()
+{
+    if(!_config_done)
+    {
+        setup();   
+    }
+    return digitalRead(_encoder_pin_B);
+}
+
+void hal_Encoder::setup()
 {
     _config_done = true;
-    pinMode(_led_pin, OUTPUT);
+    // The ESP8266 has support for internal pull-ups, so use them
+    pinMode(_encoder_pin_A, INPUT_PULLUP);
+    pinMode(_encoder_pin_B, INPUT_PULLUP);
 }

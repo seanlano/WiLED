@@ -20,29 +20,25 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hal_8266_led.h"
+#include "hal_8266_switch.h"
 
-hal_LED::hal_LED(uint8_t inPin)
+hal_Switch::hal_Switch(uint8_t inPin)
 {
-    _led_pin = inPin;
+    _switch_pin = inPin;
 }
 
-uint16_t hal_LED::getMaxPWM()
-{
-    return 1024;
-}
-
-void hal_LED::setPWM(uint16_t inValue)
+bool hal_Switch::getPin()
 {
     if(!_config_done)
     {
         setup();   
     }
-    analogWrite(_led_pin, inValue);
+    return digitalRead(_switch_pin);
 }
 
-void hal_LED::setup()
+void hal_Switch::setup()
 {
     _config_done = true;
-    pinMode(_led_pin, OUTPUT);
+    // The ESP8266 has support for internal pull-ups, so use them
+    pinMode(_switch_pin, INPUT_PULLUP);
 }

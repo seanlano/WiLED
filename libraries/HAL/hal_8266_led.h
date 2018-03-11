@@ -41,6 +41,9 @@ class hal_LED
 
     private:
     uint8_t _led_pin;
+    bool _config_done = false;
+
+    void setup();
 };
 
 #endif
