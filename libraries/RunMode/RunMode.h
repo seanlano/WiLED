@@ -53,18 +53,18 @@ class IndicatorOutput
 		
 	protected:
 		// External value variables 
-		hal_LED* __led; 
-		uint8_t __blink_mode = 0; 
-		uint8_t __output_mode = 0;
+		hal_LED* _led; 
+		uint8_t _blink_mode = 0; 
+		uint8_t _output_mode = 0;
 		
 	private: 
 		// Internal tracking variables 
-		uint8_t __output_step = 0; 
-		uint16_t __pwm_low = 2; 
-		uint16_t __pwm_high = 255; 
-		uint16_t __pwm_normal = 0;
-		uint32_t __output_step_next_millis = 0; 
-		uint16_t __output_step_spacing_millis = 200; 
+		uint8_t _output_step = 0; 
+		uint16_t _pwm_low = 2; 
+		uint16_t _pwm_high = 255; 
+		uint16_t _pwm_normal = 0;
+		uint32_t _output_step_next_millis = 0; 
+		uint16_t _output_step_spacing_millis = 200; 
 };
 
 class RunMode : public IndicatorOutput 

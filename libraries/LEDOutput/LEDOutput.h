@@ -81,31 +81,31 @@ class LEDOutput {
 	private:
 		hal_LED* led;
 		uint16_t pwm_dim_levels[NUM_DIM_STEPS];
-		uint8_t __state_dim_level = 0;
-		uint8_t __state_dim_level_goal = 0;
-		bool __state_power_on = false;
-		uint8_t __state_percent = 0;
-		int16_t __state_pwm = 0;
-		int16_t __state_pwm_last = 0;
-		int16_t __sane_pwm;
+		uint8_t _state_dim_level = 0;
+		uint8_t _state_dim_level_goal = 0;
+		bool _state_power_on = false;
+		uint8_t _state_percent = 0;
+		int16_t _state_pwm = 0;
+		int16_t _state_pwm_last = 0;
+		int16_t _sane_pwm;
 
-		int16_t __state_fade_pwm_target = 0;
-		uint32_t __state_fade_end_millis = 0UL;
-		uint8_t __state_fade_default_millis = 0;
-		uint8_t __state_step_lockout_millis = 0;
-		uint32_t __state_lockout_end_millis = 0UL;
-		float __state_fade_pwmconst = 0.00;
-		bool __state_fade_inprogress = false;
-		bool __state_autooff = false;
-		uint32_t __state_autooff_millis = 0UL;
+		int16_t _state_fade_pwm_target = 0;
+		uint32_t _state_fade_end_millis = 0UL;
+		uint8_t _state_fade_default_millis = 0;
+		uint8_t _state_step_lockout_millis = 0;
+		uint32_t _state_lockout_end_millis = 0UL;
+		float _state_fade_pwmconst = 0.00;
+		bool _state_fade_inprogress = false;
+		bool _state_autooff = false;
+		uint32_t _state_autooff_millis = 0UL;
 
-		bool __status_update_needed = false;
+		bool _status_update_needed = false;
 
-		uint8_t __find_closest_step(uint16_t inPWM);
-		uint16_t __sane_in_pwm(uint16_t inPWM);
-		uint32_t __millis_now = 0;
+		uint8_t _find_closest_step(uint16_t inPWM);
+		uint16_t _sane_in_pwm(uint16_t inPWM);
+		uint32_t _millis_now = 0;
 
-		void (*__status_callback)(void) = 0;
+		void (*_status_callback)(void) = 0;
 };
 
 #endif
