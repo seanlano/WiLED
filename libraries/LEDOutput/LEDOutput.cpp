@@ -21,13 +21,13 @@
 #include "LEDOutput.h"
 
 
-LEDOutput::LEDOutput(uint8_t inLEDPin){
+LEDOutput::LEDOutput(hal_LED *inLED)
+{
 	/// Initialise a dimmable LED
-	led_pin = inLEDPin;
-	analogWrite(led_pin, 0);
+	led = inLED;
 	
 	#if NUM_DIM_STEPS>1
-		float max_log10 = log10(MAX_PWM);
+		float max_log10 = log10(led->getMaxPWM());
 		float steps_log10 = log10(NUM_DIM_STEPS-1);
 		float exponent = max_log10/steps_log10;
 		float result;
@@ -36,9 +36,9 @@ LEDOutput::LEDOutput(uint8_t inLEDPin){
 			result = pow(idx,exponent);
 			pwm_dim_levels[idx] = int(result);
 		}
-		pwm_dim_levels[NUM_DIM_STEPS-1] = MAX_PWM;
+		pwm_dim_levels[NUM_DIM_STEPS-1] = led->getMaxPWM();
 	#else
-		pwm_dim_levels[0] = MAX_PWM;
+		pwm_dim_levels[0] = led->getMaxPWM();
 	#endif
 }
 
@@ -82,7 +82,7 @@ void LEDOutput::process(){
 	// Then, update the PWM output if needed
 	// Check if the output needs updating
 	if (__state_pwm != __state_pwm_last){
-		analogWrite(led_pin,__state_pwm);
+		led->setPWM(__state_pwm);
 		__state_pwm_last =__state_pwm;
 		// If we are not fading, then call the status update callback
 		if (!__state_fade_inprogress){

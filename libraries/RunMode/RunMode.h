@@ -21,7 +21,7 @@
 #ifndef RUNMODE_H 
 #define RUNMODE_H 
 
-#include <Arduino.h>
+#include <hal.h>
 
 #define NUM_SETTING_MODES 3  
 #define INCLUDE_MODE_ZERO true 
@@ -31,7 +31,7 @@ class IndicatorOutput
 {
 	public:
 		// Instantiate the IndicatorOutput class with a given LED pin 
-		IndicatorOutput(uint8_t inLEDPin);
+		IndicatorOutput(hal_LED *inLED);
 		
 		// Update the output 
 		void update(); 
@@ -53,7 +53,7 @@ class IndicatorOutput
 		
 	protected:
 		// External value variables 
-		uint8_t __led_pin; 
+		hal_LED* __led; 
 		uint8_t __blink_mode = 0; 
 		uint8_t __output_mode = 0;
 		
@@ -71,7 +71,7 @@ class RunMode : public IndicatorOutput
 {
 	public:
 		// Instantiate the RunMode class with a given indicator LED pin 
-		RunMode(uint8_t inLEDPin);
+		RunMode(hal_LED *inLED);
 		
 		// Run in each cycle of the main loop 
 		void update(); 

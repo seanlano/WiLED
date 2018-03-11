@@ -21,10 +21,10 @@
 #include "RunMode.h"
 
 
-IndicatorOutput::IndicatorOutput(uint8_t inLEDPin)
+IndicatorOutput::IndicatorOutput(hal_LED *inLED)
 {
 	/// Initialise the LED indicator output 
-	__led_pin = inLEDPin;
+	__led = inLED;
 }
 
 void IndicatorOutput::update()
@@ -105,7 +105,7 @@ void IndicatorOutput::update()
 void IndicatorOutput::setExact(uint16_t inPWM)
 {
 	/// Write out an exact PWM value
-	analogWrite(__led_pin, inPWM);
+	__led->setPWM(inPWM);
 }
 
 void IndicatorOutput::setNormal()
@@ -154,7 +154,7 @@ void IndicatorOutput::reset()
 
 
 
-RunMode::RunMode(uint8_t inLEDPin) : IndicatorOutput(inLEDPin)
+RunMode::RunMode(hal_LED *inLED) : IndicatorOutput(inLED)
 {
 	/// Initialise the mode controller 
 }

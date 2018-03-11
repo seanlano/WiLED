@@ -36,6 +36,7 @@
 #include <SPI.h>
 #include <RH_RF69.h>
 
+#include <hal.h>
 #include <LEDOutput.h>
 #include <RunMode.h>
 #include <Rotary.h>
@@ -72,11 +73,15 @@ const char* password = "PASS"; // And this needs to be the password
 // Singleton instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_IRQ);
 
+// Create a HAL instance of some PWM LEDs
+hal_LED hal_led_output(OUT_LED);
+hal_LED hal_led_indicator(OUT_IND);
+
 // Initialise a dimmable LED
-LEDOutput led1(OUT_LED);
+LEDOutput led1(&hal_led_output);
 
 // Initialise RunMode indicator LED
-RunMode dial_mode = RunMode(OUT_IND);
+RunMode dial_mode = RunMode(&hal_led_indicator);
 
 // Initialise rotary encoder
 Rotary dial_rotary = Rotary(ROTARY_B, ROTARY_A);

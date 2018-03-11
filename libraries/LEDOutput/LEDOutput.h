@@ -21,7 +21,7 @@
 #ifndef LEDOUTPUT_H
 #define LEDOUTPUT_H
 
-#include <Arduino.h>
+#include <hal.h>
 #include <math.h>
 
 #define MAX_PWM 1024		 // The number of PWM levels, usually 255
@@ -31,7 +31,7 @@
 class LEDOutput {
 	public:
 		// Create an LED output controller for the given pin
-		LEDOutput(uint8_t inLEDPin);
+		LEDOutput(hal_LED *inLED);
 
 		// Run in each cycle of the main loop, to update the LED output
 		void process();
@@ -79,7 +79,7 @@ class LEDOutput {
 		bool getPowerOn();
 
 	private:
-		uint8_t led_pin;
+		hal_LED* led;
 		uint16_t pwm_dim_levels[NUM_DIM_STEPS];
 		uint8_t __state_dim_level = 0;
 		uint8_t __state_dim_level_goal = 0;
