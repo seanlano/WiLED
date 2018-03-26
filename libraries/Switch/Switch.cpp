@@ -48,49 +48,25 @@ _doubleClick       ____________________________________________| |____
 
 */
 
-#if ARDUINO >= 100
-  #include "Arduino.h"
-#else
-  #include "WProgram.h"
-#endif
 #include "Switch.h"
 
-// level(0)
-Switch::Switch(byte _pin, byte PinMode, bool polarity, int debounceDelay, int longPressDelay, int doubleClickDelay):
-pin(_pin), polarity(polarity), debounceDelay(debounceDelay), longPressDelay(longPressDelay), doubleClickDelay(doubleClickDelay)
-{ pinMode(pin, PinMode);
+Switch::Switch(hal_Switch *inSwitch, bool polarity, int debounceDelay, int longPressDelay, int doubleClickDelay):
+polarity(polarity), debounceDelay(debounceDelay), longPressDelay(longPressDelay), doubleClickDelay(doubleClickDelay)
+{
+  _switch = inSwitch;
   _switchedTime = millis();
   level = read_input();
 }
 
 bool Switch::read_input()
 {
-  // Use digitalRead if analogue mode is not activated
-  #ifndef ANALOG_MODE
-    return digitalRead(pin);
-  #else
-  // Otherwise compare analogue value to the threshold
-    uint16_t val = analogRead(pin);
-    #if ANALOG_MODE == 1
-      // i.e. trigger if value goes above threshold
-      if(val > ANALOG_THRESH){
-        return true;
-      } else {
-        return false;
-      }
-    #else
-      // i.e. trigger if value goes below threshold
-      if(val < ANALOG_THRESH){
-        return true;
-      } else {
-        return false;
-      }
-    #endif
-  #endif
+  // Use the hal_Switch function to get the input status
+  _switch->getPin();
 }
 
 bool Switch::poll()
-{ _longPress = _doubleClick = false;
+{ 
+  _longPress = _doubleClick = false;
   bool newlevel = read_input();
 
   if(!_longPressLatch)
@@ -128,31 +104,38 @@ bool Switch::poll()
 }
 
 bool Switch::switched()
-{ return _switched;
+{ 
+  return _switched;
 }
 
 bool Switch::on()
-{ return !(level^polarity);
+{ 
+  return !(level^polarity);
 }
 
 bool Switch::pushed()
-{ return _switched && !(level^polarity);
+{ 
+  return _switched && !(level^polarity);
 }
 
 bool Switch::released()
-{ return _switched && (level^polarity);
+{ 
+  return _switched && (level^polarity);
 }
 
 bool Switch::longPress()
-{ return _longPress;
+{ 
+  return _longPress;
 }
 
 bool Switch::doubleClick()
-{ return _doubleClick;
+{ 
+  return _doubleClick;
 }
 
 bool Switch::longPressLatch()
-{ return _longPressLatch;
+{ 
+  return _longPressLatch;
 }
 
 void Switch::setPushedCallback(switchCallback_t cb, void* param)

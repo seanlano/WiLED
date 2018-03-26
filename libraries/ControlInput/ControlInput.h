@@ -4,7 +4,6 @@
 * input events and dispatches WiLEDProto messages 
 * 
 * Part of the "WiLED" project, https://github.com/seanlano/WiLED
-* A C++ class for controlling a PWM dimmable LED on an Arduino.
 * Copyright (C) 2017 Sean Lanigan.
 *
 * This program is free software: you can redistribute it and/or modify

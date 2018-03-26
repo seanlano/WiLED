@@ -16,6 +16,8 @@ In partiular, edits have been made to support reading from an analogue input.
 #ifndef SWITCH_H
 #define SWITCH_H
 
+#include <hal.h>
+
 // Uncomment this to use analogue mode.
 // 1 is "normally high" and 0 is "normally low"
 #define ANALOG_MODE 1
@@ -26,7 +28,7 @@ typedef void (*switchCallback_t)(void*);
 class Switch
 {
 public:
-  Switch(byte _pin, byte PinMode=INPUT_PULLUP, bool polarity=LOW, int debounceDelay=50, int longPressDelay=400, int doubleClickDelay=250);
+  Switch(hal_Switch *inSwitch, bool polarity=LOW, int debounceDelay=50, int longPressDelay=400, int doubleClickDelay=250);
   bool poll(); // Returns 1 if switched
   bool switched(); // will be refreshed by poll()
   bool on();
@@ -45,7 +47,7 @@ public:
   void setDoubleClickCallback(switchCallback_t cb, void* param = nullptr);
 
 protected:
-  const byte pin;
+  hal_Switch* _switch;
   const int debounceDelay, longPressDelay, doubleClickDelay;
   const bool polarity;
   bool level, _switched, _longPress, _longPressLatch, _doubleClick;
