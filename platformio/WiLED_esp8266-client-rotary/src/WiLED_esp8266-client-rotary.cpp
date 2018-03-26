@@ -39,7 +39,7 @@
 #include <hal.h>
 #include <LEDOutput.h>
 #include <RunMode.h>
-#include <Rotary.h>
+#include <Encoder.h>
 #include <WiLEDProto.h>
 #include <Switch.h>
 
@@ -50,7 +50,7 @@
 #define ROTARY_B      2
 #define OUT_LED       4
 #define OUT_IND       5
-#define LED_IND_LOW   16
+#define LED_IND_LOW   8
 #define LED_IND_MID   512
 #define LED_IND_HI    1024
 
@@ -84,39 +84,42 @@ LEDOutput led1(&hal_led_output);
 RunMode dial_mode = RunMode(&hal_led_indicator);
 
 // Initialise rotary encoder
-Rotary dial_rotary = Rotary(ROTARY_B, ROTARY_A);
+// hal_Encoder encoderPins(ROTARY_B, ROTARY_A);
+// Encoder dial_rotary(&encoderPins);
 
 // Initialise push button of rotary encoder on the analogue input
-Switch dial_button = Switch(A0, INPUT, LOW, 50, 750, 250);
+// Switch dial_button = Switch(A0, INPUT, LOW, 50, 750, 250);
+hal_Switch hal_switch_rotary(A0, SWITCH_TYPE_DIGITAL);
+Switch button(&hal_switch_rotary, LOW, 50, 750, 250);
 
 
 // Create a function to handle the rotary encoder
-void handleRotary()
-{
-  unsigned char result = dial_rotary.process();
+// void handleRotary()
+// {
+//   unsigned char result = dial_rotary.process();
 
-  if (result) {
-    if (result == DIR_CW && dial_mode.getModeNormal()){
-      if(led1.getDimStep() > 5){
-        dial_mode.setDoubleFlash();
-      } else {
-        led1.setDimStepUp();
-      }
-    }
-    else if (result == DIR_CCW && dial_mode.getModeNormal()){
-      led1.setDimStepDown();
-    }
-    else if (result == DIR_CW && !dial_mode.getModeNormal()){
-      dial_mode.next();
-    }
-    else if (result == DIR_CCW && !dial_mode.getModeNormal()){
-      dial_mode.prev();
-    }
-    else {
-      Serial.println("Encoder error");
-    }
-  }
-}
+//   if (result) {
+//     if (result == DIR_CW && dial_mode.getModeNormal()){
+//       if(led1.getDimStep() > 5){
+//         dial_mode.setDoubleFlash();
+//       } else {
+//         led1.setDimStepUp();
+//       }
+//     }
+//     else if (result == DIR_CCW && dial_mode.getModeNormal()){
+//       led1.setDimStepDown();
+//     }
+//     else if (result == DIR_CW && !dial_mode.getModeNormal()){
+//       dial_mode.next();
+//     }
+//     else if (result == DIR_CCW && !dial_mode.getModeNormal()){
+//       dial_mode.prev();
+//     }
+//     else {
+//       Serial.println("Encoder error");
+//     }
+//   }
+// }
 
 // Create a function to handle changes in LED output
 void LEDStatusUpdate()
@@ -243,58 +246,56 @@ void sendMessage()
   }
 }
 
-bool ignoreNextRelease = false;
+// bool ignoreNextRelease = false;
 
-void buttonPushCallback(void* ignore){
-  // Define a callback to run when the button is pressed
-  // Serial.println("Short press");
-  if(dial_mode.getModeNormal()){
-    if(!led1.getPowerOn()){
-      // LED is off, so turn it on
-      led1.setDimStep(5);
-      ignoreNextRelease = true;
-    }
-  } else {
-    dial_mode.select();
-    dial_mode.setDoubleFlash();
-  }
-}
+// void buttonPushCallback(void* ignore){
+//   // Define a callback to run when the button is pressed
+//   // Serial.println("Short press");
+//   if(dial_mode.getModeNormal()){
+//     if(!led1.getPowerOn()){
+//       // LED is off, so turn it on
+//       led1.setDimStep(5);
+//       ignoreNextRelease = true;
+//     }
+//   } else {
+//     dial_mode.select();
+//     dial_mode.setDoubleFlash();
+//   }
+// }
 
-void buttonReleaseCallback(void* ignore){
-  // Define a callback to run when the button is released
-  // Serial.println("Button released");
-  if(dial_mode.getModeNormal()){
-    if(!ignoreNextRelease && led1.getPowerOn()){
-      led1.setDimStep(0);
-    }
-  }
-  ignoreNextRelease = false;
-}
+// void buttonReleaseCallback(void* ignore){
+//   // Define a callback to run when the button is released
+//   // Serial.println("Button released");
+//   if(dial_mode.getModeNormal()){
+//     if(!ignoreNextRelease && led1.getPowerOn()){
+//       led1.setDimStep(0);
+//     }
+//   }
+//   ignoreNextRelease = false;
+// }
 
-void buttonLongCallback(void* ignore){
-  // Define a callback for long press
-  // Serial.println("Long press");
-  if(led1.getPowerOn() && ignoreNextRelease){
-    // LED will be on because of first button press event before triggering long press
-    led1.setDimStep(0);
-    dial_mode.setNormal(1);
-    dial_mode.setBlink();
-  } else if(led1.getPowerOn() && !ignoreNextRelease){
-    //Serial.println("Start a long fade out");
-    dial_mode.setDoubleFlash(); // Double-flash to indicate timer started
-    led1.setAutoOffTimer(30000); // Turn off in 30 seconds
-    ignoreNextRelease = true;
-  }
-}
+// void buttonLongCallback(void* ignore){
+//   // Define a callback for long press
+//   // Serial.println("Long press");
+//   if(led1.getPowerOn() && ignoreNextRelease){
+//     // LED will be on because of first button press event before triggering long press
+//     led1.setDimStep(0);
+//     dial_mode.setNormal(1);
+//     dial_mode.setBlink();
+//   } else if(led1.getPowerOn() && !ignoreNextRelease){
+//     //Serial.println("Start a long fade out");
+//     dial_mode.setDoubleFlash(); // Double-flash to indicate timer started
+//     led1.setAutoOffTimer(30000); // Turn off in 30 seconds
+//     ignoreNextRelease = true;
+//   }
+// }
 
 
 void setup()
 {
   // Turn on both LEDs, to show we are in setup mode
-  pinMode(OUT_IND, OUTPUT);
-  pinMode(OUT_LED, OUTPUT);
-  analogWrite(OUT_IND, 255);
-  analogWrite(OUT_LED, 1024);
+  hal_led_indicator.setPWM(LED_IND_HI);
+  hal_led_output.setPWM(1024);
 
   Serial.begin(115200);
 
@@ -372,36 +373,62 @@ void setup()
   handler.setCallbackSetIndividual(&handleSetIndividual);
 
   // Set up LED output
-  led1.setDimDefaultFade(85);
+  led1.setDimDefaultFade(75);
   led1.setDimStepLockout(250);
   // Attach LED status callback
   led1.setStatusCallback(&LEDStatusUpdate);
 
   // Attach the push button callback
-  dial_button.setPushedCallback(&buttonPushCallback);
-  dial_button.setLongPressCallback(&buttonLongCallback);
-  dial_button.setReleasedCallback(&buttonReleaseCallback);
+  // dial_button.setPushedCallback(&buttonPushCallback);
+  // dial_button.setLongPressCallback(&buttonLongCallback);
+  // dial_button.setReleasedCallback(&buttonReleaseCallback);
 
   // Turn off the LEDs, setup is done
-  analogWrite(OUT_IND, LED_IND_LOW);
-  analogWrite(OUT_LED, 0);
+  hal_led_indicator.setPWM(LED_IND_LOW);
+  hal_led_output.setPWM(0);
 
   dial_mode.setNormal(1);
+
+  // Send a beacon after turning on 
+  {
+    handler.sendMessageBeacon(millis());
+
+    uint8_t data[MAXIMUM_MESSAGE_LENGTH];
+
+    handler.copyToBuffer(data);
+
+    rf69.waitCAD();
+    rf69.send(data, MAXIMUM_MESSAGE_LENGTH);
+    rf69.waitPacketSent();
+  }
 }
 
 uint16_t poll_ctr = 0;
 void loop()
 {
   ArduinoOTA.handle();
-  handleRotary();
+  // handleRotary();
 
   led1.process();
   dial_mode.update();
-  
+
   // Without the modulo check, the poll operation locks up the MCU
   if(poll_ctr % 500 == 0){
-    dial_button.poll();
+    button.poll();
   }
   poll_ctr++;
+
+  // Listen and act if there is a packet available, otherwise keep looping
+  if (rf69.available())
+  {
+    uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
+    uint8_t len = sizeof(buf);
+    // Should be a message to process
+    if (rf69.recv(buf, &len))
+    {
+      uint8_t status_code = handler.processMessage(buf);
+      handler.handleLastMessage();
+    }
+  }
 
 }
