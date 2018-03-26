@@ -22,13 +22,16 @@
 #ifndef HAL_H
 #define HAL_H
 
-// TODO: Conditional logic here depending on architecture
-#define ESP8266
-#ifdef ESP8266
+
+#if defined( ESP8266 )
     #include "hal_8266_led.h"
     #include "hal_8266_encoder.h"
     #include "hal_8266_switch.h"
+    #include "hal_8266_radio.h"
     #include <Arduino.h>
+#elif defined ( GTEST_BUILD )
+    #include "hal_gtest_millis.h"
+    #include "hal_gtest_switch.h"
 #endif
 
 #endif

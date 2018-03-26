@@ -24,7 +24,7 @@ CXXFLAGS += -D GTEST_BUILD -g -Wall -Wextra -pthread
 ################################################################################
 ## List all tests produced by this makefile. Remember to add new ones. #########
 ################################################################################
-TESTS = WiLEDProto_unittest CRC16_unittest
+TESTS = WiLEDProto_unittest CRC16_unittest HAL_unittest
 ################################################################################
 ################################################################################
 
@@ -83,6 +83,22 @@ CRC16_unittest.o : $(USER_DIR)/CRC16_unittest.cpp \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/CRC16_unittest.cpp
 
 CRC16_unittest : CRC16.o CRC16_unittest.o gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+
+
+hal_gtest_millis.o : $(USER_DIR)/lib/HAL/hal_gtest_millis.cpp \
+	$(USER_DIR)/lib/HAL/hal.h $(USER_DIR)/lib/HAL/hal_gtest_millis.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/HAL/hal_gtest_millis.cpp
+
+hal_gtest_switch.o : $(USER_DIR)/lib/HAL/hal_gtest_switch.cpp \
+	$(USER_DIR)/lib/HAL/hal.h $(USER_DIR)/lib/HAL/hal_gtest_switch.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/HAL/hal_gtest_switch.cpp
+
+HAL_unittest.o : $(USER_DIR)/HAL_unittest.cpp \
+    $(USER_DIR)/lib/HAL/hal.h $(USER_DIR)/lib/HAL/hal_gtest_millis.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/HAL_unittest.cpp
+
+HAL_unittest : hal_gtest_millis.o hal_gtest_switch.o HAL_unittest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
 ################################################################################
