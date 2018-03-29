@@ -1,6 +1,6 @@
 /**
- * hal.h
- * Hardware Abstraction Layer top-level header 
+ * hal_gtest_led.cpp
+ * Hardware Abstraction for Google Test, providing LED simulation
  * 
  * Part of the "WiLED" project, https://github.com/seanlano/WiLED
  * Copyright (C) 2018 Sean Lanigan.
@@ -19,20 +19,42 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HAL_H
-#define HAL_H
+#include "hal_gtest_led.h"
 
-#if defined( ESP8266 )
-    #include "hal_8266_led.h"
-    #include "hal_8266_encoder.h"
-    #include "hal_8266_switch.h"
-    #include "hal_8266_radio.h"
-    #include <Arduino.h>
-#elif defined ( GTEST_BUILD )
-    #include "hal_gtest_led.h"
-    #include "hal_gtest_encoder.h"
-    #include "hal_gtest_switch.h"
-    #include "hal_gtest_millis.h"
-#endif
+hal_LED::hal_LED()
+{
+    _pwm = 0;
+    _set_pwm_called = false;
+}
 
-#endif
+uint16_t hal_LED::getMaxPWM()
+{
+    return 1024;
+}
+
+void hal_LED::setPWM(uint16_t inValue)
+{
+    if(!_config_done)
+    {
+        setup();   
+    }
+    _set_pwm_called = true;
+    _pwm = inValue;
+}
+
+uint16_t hal_LED::getPWM()
+{
+    return _pwm;
+}
+
+bool hal_LED::isSetPWMCalled()
+{
+    return _set_pwm_called;
+}
+
+void hal_LED::setup()
+{
+    // There isn't any setup needed when testing
+
+    _config_done = true;
+}
