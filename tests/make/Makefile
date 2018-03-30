@@ -12,10 +12,22 @@ GTEST_DIR = ../googletest
 # Where to find test cases
 USER_DIR = ../testcases
 
+# Where to find libraries
+LIB_DIR = ../../libraries
+
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
 CPPFLAGS += -isystem $(GTEST_DIR)/include
+# Also add various WiLED directories as system directories 
+CPPFLAGS += -isystem $(LIB_DIR)/HAL
+CPPFLAGS += -isystem $(LIB_DIR)/ControlInput
+CPPFLAGS += -isystem $(LIB_DIR)/CRC16
+CPPFLAGS += -isystem $(LIB_DIR)/Encoder
+CPPFLAGS += -isystem $(LIB_DIR)/LEDOutput
+CPPFLAGS += -isystem $(LIB_DIR)/RunMode
+CPPFLAGS += -isystem $(LIB_DIR)/Switch
+CPPFLAGS += -isystem $(LIB_DIR)/WiLEDProto
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -D GTEST_BUILD -g -Wall -Wextra -pthread
@@ -60,54 +72,46 @@ gtest_main.a : gtest-all.o gtest_main.o
 ## Builds the actual tests. New tests need to have make commands added here.
 ################################################################################
 
-WiLEDProto.o : $(USER_DIR)/lib/WiLEDProto/WiLEDProto.cpp \
-							 $(USER_DIR)/lib/WiLEDProto/WiLEDProto.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(USER_DIR) \
-	-c $(USER_DIR)/lib/WiLEDProto/WiLEDProto.cpp
+WiLEDProto.o : $(LIB_DIR)/WiLEDProto/WiLEDProto.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(LIB_DIR)/WiLEDProto/WiLEDProto.cpp
 
-WiLEDProto_unittest.o : $(USER_DIR)/WiLEDProto_unittest.cpp \
-                     		$(USER_DIR)/lib/WiLEDProto/WiLEDProto.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(USER_DIR) \
-	-c $(USER_DIR)/WiLEDProto_unittest.cpp
+WiLEDProto_unittest.o : $(USER_DIR)/WiLEDProto_unittest.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/WiLEDProto_unittest.cpp
 
 WiLEDProto_unittest : WiLEDProto.o WiLEDProto_unittest.o CRC16.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
 
-CRC16.o : $(USER_DIR)/lib/CRC16/CRC16.cpp \
-					$(USER_DIR)/lib/CRC16/CRC16.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/CRC16/CRC16.cpp
+CRC16.o : $(LIB_DIR)/CRC16/CRC16.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(LIB_DIR)/CRC16/CRC16.cpp
 
-CRC16_unittest.o : $(USER_DIR)/CRC16_unittest.cpp \
-              		 $(USER_DIR)/lib/CRC16/CRC16.h $(GTEST_HEADERS)
+CRC16_unittest.o : $(USER_DIR)/CRC16_unittest.cpp $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/CRC16_unittest.cpp
 
 CRC16_unittest : CRC16.o CRC16_unittest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
 
-hal_gtest_millis.o : $(USER_DIR)/lib/HAL/hal_gtest_millis.cpp \
-	$(USER_DIR)/lib/HAL/hal.h $(USER_DIR)/lib/HAL/hal_gtest_millis.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/HAL/hal_gtest_millis.cpp
+hal_gtest_millis.o : $(LIB_DIR)/HAL/hal_gtest_millis.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(LIB_DIR)/HAL/hal_gtest_millis.cpp
 
-hal_gtest_switch.o : $(USER_DIR)/lib/HAL/hal_gtest_switch.cpp \
-	$(USER_DIR)/lib/HAL/hal.h $(USER_DIR)/lib/HAL/hal_gtest_switch.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/HAL/hal_gtest_switch.cpp
+hal_gtest_switch.o : $(LIB_DIR)/HAL/hal_gtest_switch.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(LIB_DIR)/HAL/hal_gtest_switch.cpp
 
-hal_gtest_led.o : $(USER_DIR)/lib/HAL/hal_gtest_led.cpp \
-	$(USER_DIR)/lib/HAL/hal.h $(USER_DIR)/lib/HAL/hal_gtest_led.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/HAL/hal_gtest_led.cpp
+hal_gtest_led.o : $(LIB_DIR)/HAL/hal_gtest_led.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(LIB_DIR)/HAL/hal_gtest_led.cpp
 
-hal_gtest_encoder.o : $(USER_DIR)/lib/HAL/hal_gtest_encoder.cpp \
-	$(USER_DIR)/lib/HAL/hal.h $(USER_DIR)/lib/HAL/hal_gtest_encoder.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/lib/HAL/hal_gtest_encoder.cpp
+hal_gtest_encoder.o : $(LIB_DIR)/HAL/hal_gtest_encoder.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(LIB_DIR)/HAL/hal_gtest_encoder.cpp
 
-HAL_unittest.o : $(USER_DIR)/HAL_unittest.cpp \
-    $(USER_DIR)/lib/HAL/hal.h $(USER_DIR)/lib/HAL/hal_gtest_millis.h $(GTEST_HEADERS)
+Encoder.o : $(LIB_DIR)/Encoder/Encoder.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(LIB_DIR)/Encoder/Encoder.cpp
+
+HAL_unittest.o : $(USER_DIR)/HAL_unittest.cpp $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/HAL_unittest.cpp
 
 HAL_unittest : hal_gtest_millis.o hal_gtest_switch.o hal_gtest_led.o \
-	hal_gtest_encoder.o HAL_unittest.o gtest_main.a
+	hal_gtest_encoder.o Encoder.o HAL_unittest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
 ################################################################################

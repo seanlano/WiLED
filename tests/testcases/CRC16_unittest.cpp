@@ -18,7 +18,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lib/CRC16/CRC16.h"
+#include <CRC16.h>
 #include "gtest/gtest.h"
 
 /// Test fixture for CRC16

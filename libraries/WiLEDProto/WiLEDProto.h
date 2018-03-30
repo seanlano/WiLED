@@ -28,11 +28,10 @@
   #include <stdint.h>
   #include <stdio.h>
   #include <string.h>
-  #include "lib/CRC16/CRC16.h"
 #else // i.e. a normal build
   #include <Arduino.h>
-  #include <CRC16.h>
 #endif
+#include <CRC16.h>
 
 #define MAXIMUM_STORED_ADDRESSES 100
 #define MAXIMUM_MESSAGE_LENGTH 25

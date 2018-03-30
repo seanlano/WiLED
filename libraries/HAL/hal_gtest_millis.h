@@ -26,11 +26,11 @@
 
 #include <stdint.h>
 
-class hal_millis
+class hal_Millis
 {
     public:
     /// Constructor
-    hal_millis();
+    hal_Millis();
 
     /// Get the current time (in milliseconds) 
     uint64_t millis();

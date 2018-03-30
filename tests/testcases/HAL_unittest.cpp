@@ -1,7 +1,8 @@
 /**
- * HAL unit test program
- * Part of the "WiLED" project, https://github.com/seanlano/WiLED
+ * HAL_unittest.cpp
+ * HAL unit test program, using the Google Test framework
  * 
+ * Part of the "WiLED" project, https://github.com/seanlano/WiLED
  * Copyright (C) 2018 Sean Lanigan.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,15 +19,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "lib/HAL/hal.h"
-#include "lib/HAL/hal_gtest_millis.h"
-#include "lib/HAL/hal_gtest_switch.h"
-#include "lib/HAL/hal_gtest_led.h"
-#include "lib/HAL/hal_gtest_encoder.h"
+#ifndef GTEST_BUILD
+    #define GTEST_BUILD
+#endif
 #include "gtest/gtest.h"
 
+#include <hal.h>
+// The below would be included with hal.h, but VSCode doesn't automatically
+// figure that out so these get highlighting and completion working
+#include <hal_gtest_millis.h>
+#include <hal_gtest_switch.h>
+#include <hal_gtest_led.h>
+#include <hal_gtest_encoder.h>
 
-/// Test fixture
+#include <Encoder.h>
+
+
+/// Test fixtures
 class HALMillisTest : public testing::Test {
     protected:
     HALMillisTest() 
@@ -35,7 +44,7 @@ class HALMillisTest : public testing::Test {
     }
 
     // Create instance of millis HAL object
-    hal_millis millis;
+    hal_Millis millis;
 
     // Set up the test fixture
     virtual void SetUp() 
@@ -54,7 +63,6 @@ class HALSwitchTest : public testing::Test {
         // Initialise test fixture
     }
 
-    // Create instance of millis HAL object
     hal_Switch sw;
 
     // Set up the test fixture
@@ -73,7 +81,6 @@ class HALLEDTest : public testing::Test {
         // Initialise test fixture
     }
 
-    // Create instance of millis HAL object
     hal_LED led;
 
     // Set up the test fixture
@@ -89,8 +96,26 @@ class HALEncoderTest : public testing::Test {
         // Initialise test fixture
     }
 
-    // Create instance of millis HAL object
     hal_Encoder encoder;
+
+    // Set up the test fixture
+    //virtual void SetUp() {}
+
+    //virtual void TearDown() {}
+};
+
+class EncoderLibTest : public testing::Test {
+    protected:
+    EncoderLibTest() :
+        encoder(&hw_encoder)
+    {
+        // Initialise test fixture
+        ret_val = DIR_NONE;
+    }
+
+    hal_Encoder hw_encoder;
+    Encoder encoder;
+    uint8_t ret_val;
 
     // Set up the test fixture
     //virtual void SetUp() {}
@@ -143,10 +168,16 @@ TEST_F(HALEncoderTest, BasicSyntax)
     EXPECT_EQ(encoder.getPinB(), HIGH);
 }
 
+TEST_F(EncoderLibTest, BasicSyntax)
+{
+    ret_val = encoder.process();
+    EXPECT_EQ(hw_encoder.isGetPinCalled(), true);
+    EXPECT_EQ(ret_val, DIR_NONE);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for basic syntax
 ////////////////////////////////////////////////////////////////////////////////
 // BEGIN tests for 
 ////////////////////////////////////////////////////////////////////////////////
-
 

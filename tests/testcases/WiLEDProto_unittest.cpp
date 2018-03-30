@@ -19,8 +19,8 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lib/WiLEDProto/WiLEDProto.h"
-#include "lib/CRC16/CRC16.h"
+#include <WiLEDProto.h>
+#include <CRC16.h>
 #include "gtest/gtest.h"
 
 // #define DO_LONG_TESTS // uncomment this to allow running long and slow tests

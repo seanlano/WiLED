@@ -35,3 +35,7 @@
 .gcc-flags.json
 .travis.yml
 libraries/readme.txt
+
+# Compiled test binaries
+tests/make/*
+!tests/make/Makefile

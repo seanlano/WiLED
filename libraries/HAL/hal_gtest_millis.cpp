@@ -22,23 +22,23 @@
 
 #include "hal_gtest_millis.h"
 
-hal_millis::hal_millis()
+hal_Millis::hal_Millis()
 {
     // Initialise to zero
     _millis = 0;
 }
 
-uint64_t hal_millis::millis()
+uint64_t hal_Millis::millis()
 {
     return _millis;
 }
 
-void hal_millis::setMillis(uint64_t inTime)
+void hal_Millis::setMillis(uint64_t inTime)
 {
     _millis = inTime;
 }
 
-void hal_millis::incrementMillis(uint64_t inIncrement)
+void hal_Millis::incrementMillis(uint64_t inIncrement)
 {
     _millis += inIncrement;
 }
