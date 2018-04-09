@@ -23,6 +23,7 @@
     #define GTEST_BUILD
 #endif
 #include "gtest/gtest.h"
+#include <stdio.h>
 
 #include <hal.h>
 // The below would be included with hal.h, but VSCode doesn't automatically
@@ -178,6 +179,144 @@ TEST_F(EncoderLibTest, BasicSyntax)
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for basic syntax
 ////////////////////////////////////////////////////////////////////////////////
-// BEGIN tests for 
+// BEGIN tests for Encoder library
 ////////////////////////////////////////////////////////////////////////////////
 
+TEST_F(EncoderLibTest, RotateCCW)
+{
+    // Check the initial state is DIR_NONE
+    ret_val = encoder.process();
+    EXPECT_EQ(hw_encoder.isGetPinCalled(), true);
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' after initialisation";
+
+    // Inputs are active high, so set to HIGH state
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' at 0 step";
+
+    // 1/4 step
+    hw_encoder.setPinA(LOW);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' at 1/4 step";
+    // 1/2 step
+    hw_encoder.setPinA(LOW);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none' at 1/2 step"; // Half-step is disabled
+    // 3/4 step
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none' at 3/4 step";
+    // Full step
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_CCW)  << "Direction should be 'CW' at full step";
+}
+
+TEST_F(EncoderLibTest, RotateCW)
+{
+    // Check the initial state is DIR_NONE
+    ret_val = encoder.process();
+    EXPECT_EQ(hw_encoder.isGetPinCalled(), true);
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' after initialisation";
+
+    // Inputs are active high, so set to HIGH state
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' at 0 step";
+
+    // 1/4 step
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' at 1/4 step";
+    // 1/2 step
+    hw_encoder.setPinA(LOW);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none' at 1/2 step"; // Half-step is disabled
+    // 3/4 step
+    hw_encoder.setPinA(LOW);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none' at 3/4 step";
+    // Full step
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_CW)  << "Direction should be 'CW' at full step";
+}
+
+TEST_F(EncoderLibTest, DebounceCW)
+{
+    // Check the initial state is DIR_NONE
+    ret_val = encoder.process();
+    EXPECT_EQ(hw_encoder.isGetPinCalled(), true);
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' after initialisation";
+
+    // Inputs are active high, so set to HIGH state
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' at 0 step";
+
+    // 1/4 step, 01
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' at 1/4 step";
+    // Back to 00
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none'";
+    // 1/4 step again, 01
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' at 1/4 step";
+    // 1/2 step, 11
+    hw_encoder.setPinA(LOW);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none' at 1/2 step";
+    // Back to 1/4 step again, 01
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE) << "Direction should be 'none' at 1/4 step";
+    // 1/2 step again, 11
+    hw_encoder.setPinA(LOW);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none' at 1/2 step";
+    // 3/4 step, 10
+    hw_encoder.setPinA(LOW);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none' at 3/4 step";
+    // 1/2 step again, 11
+    hw_encoder.setPinA(LOW);
+    hw_encoder.setPinB(LOW);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none' at 1/2 step";
+    // 3/4 step again, 10
+    hw_encoder.setPinA(LOW);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_NONE)  << "Direction should be 'none' at 3/4 step";
+    // Full step, 00
+    hw_encoder.setPinA(HIGH);
+    hw_encoder.setPinB(HIGH);
+    ret_val = encoder.process();
+    EXPECT_EQ(ret_val, DIR_CW)  << "Direction should be 'CW' at full step";
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// END tests for Encoder library
+////////////////////////////////////////////////////////////////////////////////
