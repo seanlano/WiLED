@@ -34,6 +34,7 @@
 #include <hal_gtest_encoder.h>
 
 #include <Encoder.h>
+#include <Switch.h>
 
 
 /// Test fixtures
@@ -124,6 +125,28 @@ class EncoderLibTest : public testing::Test {
     //virtual void TearDown() {}
 };
 
+class SwitchLibTest : public testing::Test {
+    protected:
+    SwitchLibTest() :
+        // Need to use HIGH biasing for tests, electrically switches are usually
+        // pulled high, then trigger low - but unit testing is the opposite 
+        sw(&hw_switch, &hw_millis, HIGH)
+    {
+        // Initialise test fixture
+        hw_millis.setMillis(0);
+        hw_switch.setLow();
+    }
+
+    hal_Millis hw_millis;
+    hal_Switch hw_switch;
+    Switch sw;
+
+    // Set up the test fixture
+    //virtual void SetUp() {}
+
+    //virtual void TearDown() {}
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // BEGIN tests for basic syntax
 ////////////////////////////////////////////////////////////////////////////////
@@ -174,6 +197,23 @@ TEST_F(EncoderLibTest, BasicSyntax)
     ret_val = encoder.process();
     EXPECT_EQ(hw_encoder.isGetPinCalled(), true);
     EXPECT_EQ(ret_val, DIR_NONE);
+}
+
+TEST_F(SwitchLibTest, BasicSyntax)
+{
+    EXPECT_EQ(sw.poll(), false) << "Switch should not trigger";
+    // Set the switch to "on"
+    hw_switch.setHigh();
+    // Set time to 1
+    hw_millis.setMillis(1);
+    EXPECT_EQ(sw.poll(), false) << "Switch should be low, not enough time has elapsed";
+    EXPECT_EQ(hw_switch.isGetPinCalled(), true) << "GetPin should have been called";
+    // Advance the clock to 45 milliseconds
+    hw_millis.setMillis(45);
+    EXPECT_EQ(sw.poll(), false) << "Switch should still be low, not enough time has elapsed";
+    // Advance the clock to 51 milliseconds, which should trigger now
+    hw_millis.setMillis(51);
+    EXPECT_EQ(sw.poll(), true) << "Switch should now be high";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -319,4 +359,158 @@ TEST_F(EncoderLibTest, DebounceCW)
 
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for Encoder library
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN tests for Switch library
+////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(SwitchLibTest, Debounce30msNoiseThenOn)
+{
+    EXPECT_EQ(sw.poll(), false) << "Switch should be low at start";
+
+    // Loop over an on/off bounce, for 30 milliseconds
+    uint8_t ctr;
+    for(ctr = 0; ctr < 30; ctr++)
+    {
+        // Set "on" during even cycles
+        if(ctr % 2)
+        {
+            hw_switch.setHigh();
+        }
+        else
+        // Set "off" during odd cycles
+        {
+            hw_switch.setLow();
+        }
+        // Set the time
+        hw_millis.setMillis(ctr);
+        // Check the switch state
+        ASSERT_EQ(sw.poll(), false) << "Switch should not trigger during bounce, time is at millis: " << int(ctr);
+    }
+    // Now set the state to "on" and be stable until 50 milliseconds
+    hw_switch.setHigh();
+    for(ctr = 30; ctr < 50; ctr++)
+    {
+        // Set the time
+        hw_millis.setMillis(ctr);
+        // Check the switch state
+        ASSERT_EQ(sw.poll(), false) << "Switch should not trigger during bounce, time is at millis: " << int(ctr);
+    }
+    // Switch should trigger high in the very next millisecond
+    ctr++;
+    // Set the time
+    hw_millis.setMillis(ctr);
+    EXPECT_EQ(sw.poll(), true) << "Switch should have triggered, time is at millis: " << int(ctr);
+    EXPECT_EQ(sw.pushed(), true) << "Switch should have triggered, time is at millis: " << int(ctr);
+}
+
+TEST_F(SwitchLibTest, Debounce30msNoiseThenOff)
+{
+    EXPECT_EQ(sw.poll(), false) << "Switch should be low at start";
+
+    // Loop over an on/off bounce, for 30 milliseconds
+    uint8_t ctr;
+    for(ctr = 0; ctr < 30; ctr++)
+    {
+        // Set "on" during even cycles
+        if(ctr % 2)
+        {
+            hw_switch.setHigh();
+        }
+        else
+        // Set "off" during odd cycles
+        {
+            hw_switch.setLow();
+        }
+        // Set the time
+        hw_millis.setMillis(ctr);
+        // Check the switch state
+        ASSERT_EQ(sw.poll(), false) << "Switch should not trigger during bounce, time is at millis: " << int(ctr);
+    }
+    // Now set the state to "off" and be stable until 100 milliseconds
+    hw_switch.setLow();
+    for(ctr = 30; ctr < 100; ctr++)
+    {
+        // Set the time
+        hw_millis.setMillis(ctr);
+        // Check the switch state
+        ASSERT_EQ(sw.poll(), false) << "Switch should not trigger because state is stable off, time is at millis: " << int(ctr);
+        ASSERT_EQ(sw.pushed(), false) << "Switch should not have triggered, time is at millis: " << int(ctr);
+    }
+}
+
+TEST_F(SwitchLibTest, Debounce30msNoiseThenLongPress)
+{
+    EXPECT_EQ(sw.poll(), false) << "Switch should be low at start";
+
+    // Loop over an on/off bounce, for 30 milliseconds
+    uint16_t ctr;
+    for(ctr = 0; ctr < 30; ctr++)
+    {
+        // Set "on" during even cycles
+        if(ctr % 2)
+        {
+            hw_switch.setHigh();
+        }
+        else
+        // Set "off" during odd cycles
+        {
+            hw_switch.setLow();
+        }
+        // Set the time
+        hw_millis.setMillis(ctr);
+        // Check the switch state
+        ASSERT_EQ(sw.poll(), false) << "Switch should not trigger during bounce, time is at millis: " << int(ctr);
+    }
+    
+    // Now set the state to "on" and be stable until 50 milliseconds
+    hw_switch.setHigh();
+    for(ctr = 30; ctr < 50; ctr++)
+    {
+        // Set the time
+        hw_millis.setMillis(ctr);
+        // Check the switch state
+        ASSERT_EQ(sw.poll(), false) << "Switch should not trigger during bounce, time is at millis: " << int(ctr);
+    }
+    // Switch should trigger high in the very next millisecond
+    ctr = 50;
+    // Set the time
+    hw_millis.setMillis(ctr);
+    EXPECT_EQ(sw.poll(), true) << "Switch should have triggered, time is at millis: " << int(ctr);
+    EXPECT_EQ(sw.pushed(), true) << "Switch should have triggered, time is at millis: " << int(ctr);
+
+    // The following poll() should then be false again
+    ctr = 51;
+    // Set the time
+    hw_millis.setMillis(ctr);
+    EXPECT_EQ(sw.poll(), false) << "Switch should not re-trigger, time is at millis: " << int(ctr);
+    EXPECT_EQ(sw.pushed(), false) << "Switch should not re-trigger, time is at millis: " << int(ctr);
+    
+    // Keep the switch on until 450 ms
+    for(ctr = 52; ctr < 451; ctr++)
+    {
+        // Set the time
+        hw_millis.setMillis(ctr);
+        // Check the switch state
+        ASSERT_EQ(sw.poll(), false) << "Switch should not trigger waiting for long press, time is at millis: " << int(ctr);
+        ASSERT_EQ(sw.longPress(), false) << "Long press should not trigger yet, time is at millis: " << int(ctr);
+    }
+    // Long press should trigger high in the very next millisecond (triggers one after the timeout)
+    ctr = 451;
+    // Set the time
+    hw_millis.setMillis(ctr);
+    EXPECT_EQ(sw.poll(), false) << "Switch should not have triggered, time is at millis: " << int(ctr);
+    EXPECT_EQ(sw.longPress(), true) << "Long press should have triggered, time is at millis: " << int(ctr);
+    EXPECT_EQ(sw.longPressLatch(), true) << "Long press latch should be triggered, time is at millis: " << int(ctr);
+    
+    // Long press should not trigger in the following millisecond
+    ctr = 452;
+    // Set the time
+    hw_millis.setMillis(ctr);
+    EXPECT_EQ(sw.poll(), false) << "Switch should not have triggered, time is at millis: " << int(ctr);
+    EXPECT_EQ(sw.longPress(), false) << "Long press should not have re-triggered, time is at millis: " << int(ctr);
+    EXPECT_EQ(sw.longPressLatch(), true) << "Long press latch should still be triggered, time is at millis: " << int(ctr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// END tests for Switch library
 ////////////////////////////////////////////////////////////////////////////////

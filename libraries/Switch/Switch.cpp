@@ -54,14 +54,24 @@ Switch::Switch(hal_Switch *inSwitch, bool polarity, int debounceDelay, int longP
 polarity(polarity), debounceDelay(debounceDelay), longPressDelay(longPressDelay), doubleClickDelay(doubleClickDelay)
 {
   _switch = inSwitch;
-  _switchedTime = millis();
+  _millis = new hal_Millis;
+  _switchedTime = _millis->millis();
+  level = read_input();
+}
+
+Switch::Switch(hal_Switch *inSwitch, hal_Millis *inMillis, bool polarity, int debounceDelay, int longPressDelay, int doubleClickDelay):
+polarity(polarity), debounceDelay(debounceDelay), longPressDelay(longPressDelay), doubleClickDelay(doubleClickDelay)
+{
+  _switch = inSwitch;
+  _millis = inMillis;
+  _switchedTime = _millis->millis();
   level = read_input();
 }
 
 bool Switch::read_input()
 {
   // Use the hal_Switch function to get the input status
-  _switch->getPin();
+  return _switch->getPin();
 }
 
 bool Switch::poll()
@@ -70,22 +80,22 @@ bool Switch::poll()
   bool newlevel = read_input();
 
   if(!_longPressLatch)
-  { _longPress = on() && ((long)(millis() - pushedTime) > longPressDelay); // true just one time between polls
+  { _longPress = on() && (unsigned((_millis->millis()) - pushedTime) > longPressDelay); // true just one time between polls
     _longPressLatch = _longPress; // will be reset at next switch
   }
   if(_longPressCallback && longPress())
   { _longPressCallback(_longPressCallbackParam);
   }
 
-  if((newlevel != level) & (millis() - _switchedTime >= debounceDelay))
-  { _switchedTime = millis();
+  if((newlevel != level) & (unsigned(_millis->millis()) - _switchedTime >= debounceDelay))
+  { _switchedTime = _millis->millis();
     level = newlevel;
     _switched = 1;
     _longPressLatch = false;
 
     if(pushed())
-    { _doubleClick = (long)(millis() - pushedTime) < doubleClickDelay;
-      pushedTime = millis();
+    { _doubleClick = (long)(_millis->millis() - pushedTime) < doubleClickDelay;
+      pushedTime = _millis->millis();
     }
 
     if(_pushedCallback && pushed())

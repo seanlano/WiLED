@@ -29,6 +29,7 @@ class Switch
 {
 public:
   Switch(hal_Switch *inSwitch, bool polarity=LOW, int debounceDelay=50, int longPressDelay=400, int doubleClickDelay=250);
+  Switch(hal_Switch *inSwitch, hal_Millis *inMillis, bool polarity=LOW, int debounceDelay=50, int longPressDelay=400, int doubleClickDelay=250);
   bool poll(); // Returns 1 if switched
   bool switched(); // will be refreshed by poll()
   bool on();
@@ -48,7 +49,8 @@ public:
 
 protected:
   hal_Switch* _switch;
-  const int debounceDelay, longPressDelay, doubleClickDelay;
+  hal_Millis* _millis;
+  const uint16_t debounceDelay, longPressDelay, doubleClickDelay;
   const bool polarity;
   bool level, _switched, _longPress, _longPressLatch, _doubleClick;
 
