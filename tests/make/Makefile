@@ -110,11 +110,15 @@ Encoder.o : $(LIB_DIR)/Encoder/Encoder.cpp $(GTEST_HEADERS)
 Switch.o : $(LIB_DIR)/Switch/Switch.cpp $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(LIB_DIR)/Switch/Switch.cpp
 
+RunMode.o : $(LIB_DIR)/RunMode/RunMode.cpp $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(LIB_DIR)/RunMode/RunMode.cpp
+
 HAL_unittest.o : $(USER_DIR)/HAL_unittest.cpp $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/HAL_unittest.cpp
 
 HAL_unittest : hal_gtest_millis.o hal_gtest_switch.o hal_gtest_led.o \
-	hal_gtest_encoder.o Encoder.o Switch.o HAL_unittest.o gtest_main.a
+	hal_gtest_encoder.o Encoder.o Switch.o RunMode.o \
+	HAL_unittest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
 ################################################################################

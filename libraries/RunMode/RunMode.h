@@ -32,6 +32,8 @@ class IndicatorOutput
 	public:
 		// Instantiate the IndicatorOutput class with a given LED pin 
 		IndicatorOutput(hal_LED *inLED);
+		// Special constructor for use with unit tests
+		IndicatorOutput(hal_LED *inLED, hal_Millis *inMillis);
 		
 		// Update the output 
 		void update(); 
@@ -65,6 +67,8 @@ class IndicatorOutput
 		uint16_t _pwm_normal = 0;
 		uint32_t _output_step_next_millis = 0; 
 		uint16_t _output_step_spacing_millis = 200; 
+
+		hal_Millis* _millis;
 };
 
 class RunMode : public IndicatorOutput 
@@ -72,6 +76,8 @@ class RunMode : public IndicatorOutput
 	public:
 		// Instantiate the RunMode class with a given indicator LED pin 
 		RunMode(hal_LED *inLED);
+		// Special constructor for use with unit tests
+		RunMode(hal_LED *inLED, hal_Millis *inMillis);
 		
 		// Run in each cycle of the main loop 
 		void update(); 
@@ -86,7 +92,7 @@ class RunMode : public IndicatorOutput
 		// Define various get functions
 		bool getModeNormal(); 
 		
-	protected:
+	private:
 		
 };
 

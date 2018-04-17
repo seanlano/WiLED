@@ -35,6 +35,7 @@
 
 #include <Encoder.h>
 #include <Switch.h>
+#include <RunMode.h>
 
 
 /// Test fixtures
@@ -147,6 +148,25 @@ class SwitchLibTest : public testing::Test {
     //virtual void TearDown() {}
 };
 
+class RunModeLibTest : public testing::Test {
+    protected:
+    RunModeLibTest() :
+        runmode(&hw_LED, &hw_millis)
+    {
+        // Initialise test fixture
+    }
+
+    hal_Millis hw_millis;
+    hal_LED hw_LED;
+
+    RunMode runmode;
+
+    // Set up the test fixture
+    //virtual void SetUp() {}
+
+    //virtual void TearDown() {}
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // BEGIN tests for basic syntax
 ////////////////////////////////////////////////////////////////////////////////
@@ -214,6 +234,11 @@ TEST_F(SwitchLibTest, BasicSyntax)
     // Advance the clock to 51 milliseconds, which should trigger now
     hw_millis.setMillis(51);
     EXPECT_EQ(sw.poll(), true) << "Switch should now be high";
+}
+
+TEST_F(RunModeLibTest, BasicSyntax)
+{
+    EXPECT_EQ(runmode.getModeNormal(), true) << "RunMode should be normal";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -513,4 +538,24 @@ TEST_F(SwitchLibTest, Debounce30msNoiseThenLongPress)
 
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for Switch library
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN tests for RunMode library
+////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(RunModeLibTest, SetExactValue)
+{
+    hw_millis.setMillis(0);
+    EXPECT_EQ(hw_LED.isSetPWMCalled(), false);
+    runmode.update();
+    runmode.setExact(100);
+    hw_millis.setMillis(1);
+    runmode.update();
+    EXPECT_EQ(hw_LED.isSetPWMCalled(), true);
+    EXPECT_EQ(hw_LED.getPWM(), 100);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// END tests for RunMode library
+////////////////////////////////////////////////////////////////////////////////
+// BEGIN tests for 
 ////////////////////////////////////////////////////////////////////////////////

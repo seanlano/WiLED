@@ -25,12 +25,22 @@ IndicatorOutput::IndicatorOutput(hal_LED *inLED)
 {
 	/// Initialise the LED indicator output 
 	_led = inLED;
+	// Create a hal_Millis instance to use
+	_millis = new hal_Millis;
+}
+
+IndicatorOutput::IndicatorOutput(hal_LED *inLED, hal_Millis *inMillis)
+{
+	/// Initialise the LED indicator output 
+	_led = inLED;
+	// Use the passed hal_Millis instance
+	_millis = inMillis;
 }
 
 void IndicatorOutput::update()
 {
 	/// Update the PWM output
-	uint32_t millis_now = millis();
+	uint32_t millis_now = _millis->millis();
 	// Check if we should move to the next output_step
 	switch(_output_mode){
 		// Normal mode
@@ -147,16 +157,23 @@ void IndicatorOutput::setDoubleFlash()
 void IndicatorOutput::reset()
 {
 	/// Set timing variables to zero 
-	_output_step_next_millis = millis() + _output_step_spacing_millis; 
+	_output_step_next_millis = _millis->millis() + _output_step_spacing_millis; 
 	_output_step = 0;
 	setExact(_pwm_low);
 }
 
 
 
-RunMode::RunMode(hal_LED *inLED) : IndicatorOutput(inLED)
+RunMode::RunMode(hal_LED *inLED) : 
+	IndicatorOutput(inLED)
 {
 	/// Initialise the mode controller 
+}
+
+RunMode::RunMode(hal_LED *inLED, hal_Millis *inMillis) : 
+	IndicatorOutput(inLED, inMillis)
+{
+	/// Initialise the mode controller (with unit test hal_Millis)
 }
 
 void RunMode::update()
