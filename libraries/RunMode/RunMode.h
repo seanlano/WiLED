@@ -66,7 +66,7 @@ class IndicatorOutput
 		uint16_t _pwm_high = 255; 
 		uint16_t _pwm_normal = 0;
 		uint32_t _output_step_next_millis = 0; 
-		uint16_t _output_step_spacing_millis = 200; 
+		const uint16_t _output_step_spacing_millis = (200 - 1); // -1 offset is cancelled out 
 
 		hal_Millis* _millis;
 };

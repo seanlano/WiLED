@@ -42,40 +42,55 @@ void IndicatorOutput::update()
 	/// Update the PWM output
 	uint32_t millis_now = _millis->millis();
 	// Check if we should move to the next output_step
-	switch(_output_mode){
+	switch(_output_mode)
+	{
 		// Normal mode
 		case 0:
 			break;
 		// Blink mode 
 		case 1:
 		{
-			if(millis_now > _output_step_next_millis){
-				if(_blink_mode == 0){
+			if(millis_now > _output_step_next_millis)
+			{
+				if(_blink_mode == 0)
+				{
 					// Special output for mode 0
 					// Check if we need to loop around to step 0
-					if(_output_step > 6){
+					if(_output_step > 6)
+					{
 						_output_step = 0;
 					}
 					// High for step 0-4
-					if(_output_step < 5){
+					if(_output_step < 5)
+					{
 						setExact(_pwm_high);
 					// Low for step 5-6
-					} else {
+					} 
+					else 
+					{
 						setExact(_pwm_low);
 					}
-				} else {
+				}
+				else
+				{
 					// Not 0, use algorithm 
 					// Check if we need to loop around to step 0 
-					if(_output_step > (_blink_mode * 2 + 2)){
+					if(_output_step > (_blink_mode * 2 + 2))
+					{
 						_output_step = 0;
 					}
 					// If output_step is greater than (setting_mode*2-1), set output low 
-					if(_output_step > (_blink_mode * 2 - 1)){
+					if(_output_step > (_blink_mode * 2 - 1))
+					{
 						setExact(_pwm_low);
-					} else if(_output_step % 2){
+					} 
+					else if(_output_step % 2)
+					{
 						// If step is odd, set output low
 						setExact(_pwm_low);
-					} else {
+					} 
+					else
+					{
 						// If step is even, set output high 
 						setExact(_pwm_high);
 					}
