@@ -79,19 +79,19 @@ void IndicatorOutput::update()
 					{
 						_output_step = 0;
 					}
-					// If output_step is greater than (setting_mode*2-1), set output low 
+					// If output_step is greater than (blink_mode*2-1), set output low 
 					if(_output_step > (_blink_mode * 2 - 1))
 					{
 						setExact(_pwm_low);
 					} 
 					else if(_output_step % 2)
 					{
-						// If step is odd, set output low
+						// If step is even, set output low
 						setExact(_pwm_low);
 					} 
 					else
 					{
-						// If step is even, set output high 
+						// If step is odd, set output high 
 						setExact(_pwm_high);
 					}
 				}
