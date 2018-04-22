@@ -665,6 +665,172 @@ TEST_F(RunModeLibTest, BlinkMode1)
     }
 }
 
+TEST_F(RunModeLibTest, BlinkMode2)
+{
+    hw_millis.setMillis(0);
+    runmode.setNormal();
+    runmode.update();
+    ASSERT_EQ(hw_LED.getPWM(), 0) << "LED value should be 0 at start";
+
+    // Do nothing for 1000 ms
+    int ctr;
+    for(ctr = 1; ctr <= 1000; ctr++)
+    {
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 0) << "LED value should be 0 in normal mode";
+    }
+
+    /**
+     *  Set to blink mode "2"
+     * 
+     *  Output should be high for two cycles out of seven
+     *   0   1   2   3   4   5   6
+     *      ___     ___
+     *  ___|   |___|   |___ ___ ___ 
+     */
+    runmode.setBlink(2);
+    for(ctr = 1001; ctr < 1200; ctr++)
+    {
+        // LED should be low for first time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 2) << "LED value should be 2. Time: " << ctr;
+    }
+    for(ctr = 1200; ctr < 1400; ctr++)
+    {
+        // LED should then be high for 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 255) << "LED value should be 255. Time: " << ctr;
+    }
+    for(ctr = 1400; ctr < 1600; ctr++)
+    {
+        // LED should be low for next 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 2) << "LED value should be 2. Time: " << ctr;
+    }
+    for(ctr = 1600; ctr < 1800; ctr++)
+    {
+        // LED should be high again for the next 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 255) << "LED value should be 255. Time: " << ctr;
+    }
+    for(ctr = 1800; ctr < 2600; ctr++)
+    {
+        // LED should be low for next 4 time steps = 800 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 2) << "LED value should be 2. Time: " << ctr;
+    }
+    for(ctr = 2600; ctr < 2800; ctr++)
+    {
+        // LED should then be high for 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 255) << "LED value should be 255. Time: " << ctr;
+    }
+    for(ctr = 2800; ctr < 3000; ctr++)
+    {
+        // LED should be low for next 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 2) << "LED value should be 2. Time: " << ctr;
+    }
+}
+
+TEST_F(RunModeLibTest, BlinkMode3)
+{
+    hw_millis.setMillis(0);
+    runmode.setNormal();
+    runmode.update();
+    ASSERT_EQ(hw_LED.getPWM(), 0) << "LED value should be 0 at start";
+
+    // Do nothing for 1000 ms
+    int ctr;
+    for(ctr = 1; ctr <= 1000; ctr++)
+    {
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 0) << "LED value should be 0 in normal mode";
+    }
+
+    /**
+     *  Set to blink mode "3"
+     * 
+     *  Output should be high for three cycles out of nine
+     *   0   1   2   3   4   5   6   7   8
+     *      ___     ___     ___ 
+     *  ___|   |___|   |___|   |___ ___ ___ 
+     */
+    runmode.setBlink(3);
+    for(ctr = 1001; ctr < 1200; ctr++)
+    {
+        // LED should be low for first time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 2) << "LED value should be 2. Time: " << ctr;
+    }
+    for(ctr = 1200; ctr < 1400; ctr++)
+    {
+        // LED should then be high for 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 255) << "LED value should be 255. Time: " << ctr;
+    }
+    for(ctr = 1400; ctr < 1600; ctr++)
+    {
+        // LED should be low for next 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 2) << "LED value should be 2. Time: " << ctr;
+    }
+    for(ctr = 1600; ctr < 1800; ctr++)
+    {
+        // LED should be high again for the next 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 255) << "LED value should be 255. Time: " << ctr;
+    }
+    for(ctr = 1800; ctr < 2000; ctr++)
+    {
+        // LED should be low for next 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 2) << "LED value should be 2. Time: " << ctr;
+    }
+    for(ctr = 2000; ctr < 2200; ctr++)
+    {
+        // LED should be high again for the next 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 255) << "LED value should be 255. Time: " << ctr;
+    }
+    for(ctr = 2200; ctr < 3000; ctr++)
+    {
+        // LED should be low for next 4 time steps = 800 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 2) << "LED value should be 2. Time: " << ctr;
+    }
+    for(ctr = 3000; ctr < 3200; ctr++)
+    {
+        // LED should then be high for 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 255) << "LED value should be 255. Time: " << ctr;
+    }
+    for(ctr = 3200; ctr < 3400; ctr++)
+    {
+        // LED should be low for next 1 time step = 200 ms
+        hw_millis.setMillis(ctr);
+        runmode.update();
+        ASSERT_EQ(hw_LED.getPWM(), 2) << "LED value should be 2. Time: " << ctr;
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // END tests for RunMode library
 ////////////////////////////////////////////////////////////////////////////////
