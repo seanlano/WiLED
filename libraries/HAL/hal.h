@@ -1,52 +1,38 @@
-/* Rotary encoder handler for arduino.
- *
- * Copyright 2011 Ben Buxton. Licenced under the GNU GPL Version 3.
- * Contact: bb@cactii.net
+/**
+ * hal.h
+ * Hardware Abstraction Layer top-level header 
  * 
+ * Part of the "WiLED" project, https://github.com/seanlano/WiLED
+ * Copyright (C) 2018 Sean Lanigan.
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
-#ifndef Rotary_h
-#define Rotary_h
+#ifndef HAL_H
+#define HAL_H
 
-#include "Arduino.h"
-
-// Enable this to emit codes twice per step.
-// #define HALF_STEP
-
-// Enable weak pullups
-#define ENABLE_PULLUPS
-
-// Values returned by 'process'
-// No complete step yet.
-#define DIR_NONE 0x0
-// Clockwise step.
-#define DIR_CW 0x10
-// Counter-clockwise step.
-#define DIR_CCW 0x20
-
-class Rotary
-{
-  public:
-    Rotary(char, char);
-    unsigned char process();
-  private:
-    unsigned char state;
-    unsigned char pin1;
-    unsigned char pin2;
-};
+#if defined( ESP8266 )
+    #include "hal_8266_led.h"
+    #include "hal_8266_encoder.h"
+    #include "hal_8266_switch.h"
+    #include "hal_8266_radio.h"
+    #include <Arduino.h>
+#elif defined ( GTEST_BUILD )
+    #include "hal_gtest_led.h"
+    #include "hal_gtest_encoder.h"
+    #include "hal_gtest_switch.h"
+    #include "hal_gtest_millis.h"
+#endif
 
 #endif
- 

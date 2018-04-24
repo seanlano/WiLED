@@ -137,6 +137,8 @@ The checksum shall consist of:
 
 - 2 bytes: CRC16 checksum value
 
+The specific CRC16 method used is "CRC-CCITT (XModem)" as implemented in [this calculator](https://www.lammertbies.nl/comm/info/crc-calculation.html). The `CRC16` function created for this project is based on [this code](https://github.com/vinmenn/Crc16/blob/aed958375acfd6edfcddbfcb3a42a861c77bb697/Crc16.h). 
+
 
 _______________________________________________________________________
 

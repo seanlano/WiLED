@@ -21,7 +21,7 @@
 #ifndef RUNMODE_H 
 #define RUNMODE_H 
 
-#include <Arduino.h>
+#include <hal.h>
 
 #define NUM_SETTING_MODES 3  
 #define INCLUDE_MODE_ZERO true 
@@ -31,7 +31,9 @@ class IndicatorOutput
 {
 	public:
 		// Instantiate the IndicatorOutput class with a given LED pin 
-		IndicatorOutput(uint8_t inLEDPin);
+		IndicatorOutput(hal_LED *inLED);
+		// Special constructor for use with unit tests
+		IndicatorOutput(hal_LED *inLED, hal_Millis *inMillis);
 		
 		// Update the output 
 		void update(); 
@@ -53,25 +55,29 @@ class IndicatorOutput
 		
 	protected:
 		// External value variables 
-		uint8_t __led_pin; 
-		uint8_t __blink_mode = 0; 
-		uint8_t __output_mode = 0;
+		hal_LED* _led; 
+		uint8_t _blink_mode = 0; 
+		uint8_t _output_mode = 0;
 		
 	private: 
 		// Internal tracking variables 
-		uint8_t __output_step = 0; 
-		uint16_t __pwm_low = 2; 
-		uint16_t __pwm_high = 255; 
-		uint16_t __pwm_normal = 0;
-		uint32_t __output_step_next_millis = 0; 
-		uint16_t __output_step_spacing_millis = 200; 
+		uint8_t _output_step = 0; 
+		uint16_t _pwm_low = 2; 
+		uint16_t _pwm_high = 255; 
+		uint16_t _pwm_normal = 0;
+		uint32_t _output_step_next_millis = 0; 
+		const uint16_t _output_step_spacing_millis = (200 - 1); // -1 offset is cancelled out 
+
+		hal_Millis* _millis;
 };
 
 class RunMode : public IndicatorOutput 
 {
 	public:
 		// Instantiate the RunMode class with a given indicator LED pin 
-		RunMode(uint8_t inLEDPin);
+		RunMode(hal_LED *inLED);
+		// Special constructor for use with unit tests
+		RunMode(hal_LED *inLED, hal_Millis *inMillis);
 		
 		// Run in each cycle of the main loop 
 		void update(); 
@@ -86,7 +92,7 @@ class RunMode : public IndicatorOutput
 		// Define various get functions
 		bool getModeNormal(); 
 		
-	protected:
+	private:
 		
 };
 

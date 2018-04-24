@@ -17,8 +17,12 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
-* NOTE: At this early stage, this code does not do very much - it is
-* heavily under development!
+*
+* This example sketch takes the WiLEDProto class, and uses it to create WiLP
+* messages in a buffer. This buffer is then transmitted through an RF-69 radio
+* to a similar device running a server sketch, which will also send back a
+* reply message. Both client and server print out various stats about each
+* message received (via serial).
 */
 
 #include <ESP8266WiFi.h>
@@ -75,6 +79,16 @@ void EEPROMcommitter(){
 }
 
 
+// Create a function to be called when a 'Set Individual' message is received
+void handleSetIndividual(WiLEDStatus inStatus){
+  Serial.println("Received 'Set Individual' message.");
+  Serial.print("  Target: 0x");
+  Serial.print(inStatus.address, HEX);
+  Serial.print(". Value: ");
+  Serial.println(inStatus.level);
+}
+
+
 WiLEDProto handler(CLIENT_ADDRESS, &EEPROMreader, &EEPROMwriter, &EEPROMcommitter);
 
 
@@ -89,9 +103,7 @@ void sendMessage()
   msg_status = handler.sendMessageBeacon(millis());
   handler.copyToBuffer(data);
 
-  // Send a message to rf69_server
-
-  // Send a message to manager_server
+  // Send a message to server
   rf69.waitCAD();
   rf69.send(data, MAXIMUM_MESSAGE_LENGTH);
   rf69.waitPacketSent();
@@ -106,16 +118,54 @@ void sendMessage()
   // Now wait for a reply
   uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
   len = sizeof(buf);
-
-  if (rf69.waitAvailableTimeout(10))
+  // Wait for up to 15 ms for a reply
+  if (rf69.waitAvailableTimeout(15))
   {
     // Should be a reply message for us now
     if (rf69.recv(buf, &len))
     {
-      Serial.print("got reply: ");
-      Serial.println((char*)buf);
-      Serial.print("RSSI: ");
+      Serial.print("HEX: ");
+      for(int idx=0; idx<20; idx++){
+        Serial.print(buf[idx], HEX);
+        Serial.print(" ");
+      }
+      Serial.println(". ");
+
+      uint8_t status_code = handler.processMessage(buf);
+      int16_t msg_check_code = -1;
+
+      if(status_code == WiLP_RETURN_SUCCESS){
+        msg_check_code = handler.getLastReceivedMessageCounterValidation();
+      }
+
+      Serial.print("Message analysis. Return code: ");
+      Serial.println(status_code, DEC);
+      Serial.print("  Source device: ");
+      Serial.println(handler.getLastReceivedSource(), HEX);
+      Serial.print("  Destination device: ");
+      Serial.println(handler.getLastReceivedDestination(), HEX);
+      Serial.print("  Message type: ");
+      Serial.println(handler.getLastReceivedType(), HEX);
+      Serial.print("  Reset counter: ");
+      Serial.println(handler.getLastReceivedResetCounter(), DEC);
+      Serial.print("  Message counter: ");
+      Serial.print(handler.getLastReceivedMessageCounter(), DEC);
+      if(msg_check_code == WiLP_RETURN_SUCCESS){
+        Serial.println(" (VALID)");
+      } else if(msg_check_code == WiLP_RETURN_ADDED_ADDRESS){
+        Serial.println(" (ADDED NEW)");
+      } else if(status_code == WiLP_RETURN_INVALID_RST_CTR){
+        Serial.println(" (INVALID RST)");
+      } else if(status_code == WiLP_RETURN_INVALID_MSG_CTR){
+        Serial.println(" (INVALID MSG)");
+      } else if(status_code == WiLP_RETURN_INVALID_CHECKSUM){
+        Serial.println(" (CHECKSUM FAILED)");
+      } else {
+        Serial.println(" (OTHER ERROR)");
+      }
+      Serial.print("  RSSI: ");
       Serial.println(rf69.lastRssi(), DEC);
+      Serial.println();
     }
     else
     {
@@ -172,7 +222,7 @@ void setup()
   digitalPinToInterrupt(RFM69_IRQ);
 
 
-  Serial.println(F("Feather ESP8266 RFM69 TX Datagram Test! (with rotary encoder)"));
+  Serial.println(F("Feather ESP8266 RFM69 TX Datagram Test! (with sequential ping)"));
   Serial.println();
 
   if (!rf69.init())
@@ -206,6 +256,7 @@ void setup()
 */
 
   handler.initStorage();
+  handler.setCallbackSetIndividual(&handleSetIndividual);
 
   next_fire = millis() + 5000;
 }
@@ -217,7 +268,7 @@ void loop()
 
   if(millis() > next_fire)
   {
-    next_fire = millis() + 500;
+    next_fire = millis() + 1000;
     sendMessage();
   }
 }
